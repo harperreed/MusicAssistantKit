@@ -20,6 +20,8 @@ jobs:
         run: swift --version
 
       - name: Run tests with coverage
+        env:
+          SKIP_INTEGRATION_TESTS: 1
         run: swift test --enable-code-coverage
 
       - name: Generate coverage report

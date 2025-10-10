@@ -57,12 +57,14 @@ SwiftLint rules for code quality:
 ✅ SwiftFormat passed
 🔬 Running SwiftLint...
 ✅ SwiftLint passed
-🧪 Running tests...
+🧪 Running tests (skipping integration tests)...
 ✅ All tests passed
 🏗️  Verifying build...
 ✅ Build successful
 ✨ All pre-commit checks passed!
 ```
+
+**Note:** Integration tests are skipped during pre-commit hooks (using `SKIP_INTEGRATION_TESTS=1`) because they require a running Music Assistant server. Integration tests run separately in CI when a server is available.
 
 ## If Checks Fail
 
@@ -107,7 +109,11 @@ swiftlint lint
 
 ### Run Tests
 ```bash
+# Run all tests (including integration tests)
 swift test
+
+# Skip integration tests (pre-commit default)
+SKIP_INTEGRATION_TESTS=1 swift test
 ```
 
 ### Build

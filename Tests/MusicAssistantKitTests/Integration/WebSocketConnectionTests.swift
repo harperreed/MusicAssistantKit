@@ -9,8 +9,9 @@ import Testing
 struct WebSocketConnectionTests {
     let testHost = ProcessInfo.processInfo.environment["MA_TEST_HOST"] ?? "localhost"
     let testPort = Int(ProcessInfo.processInfo.environment["MA_TEST_PORT"] ?? "8095") ?? 8095
+    let skipIntegration = ProcessInfo.processInfo.environment["SKIP_INTEGRATION_TESTS"] != nil
 
-    @Test("Connect to Music Assistant server")
+    @Test("Connect to Music Assistant server", .enabled(if: ProcessInfo.processInfo.environment["SKIP_INTEGRATION_TESTS"] == nil))
     func connect() async throws {
         let connection = WebSocketConnection(host: testHost, port: testPort)
 
