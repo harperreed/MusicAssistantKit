@@ -10,21 +10,21 @@ public enum ConnectionState {
     case reconnecting(attempt: Int, delay: TimeInterval)
     case failed(error: Error)
 
-    var isConnected: Bool {
+    public var isConnected: Bool {
         if case .connected = self {
             return true
         }
         return false
     }
 
-    var isDisconnected: Bool {
+    public var isDisconnected: Bool {
         if case .disconnected = self {
             return true
         }
         return false
     }
 
-    var isReconnecting: Bool {
+    public var isReconnecting: Bool {
         if case .reconnecting = self {
             return true
         }
