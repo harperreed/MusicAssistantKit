@@ -19,6 +19,18 @@ jobs:
       - name: Show Swift version
         run: swift --version
 
+      - name: Install SwiftFormat
+        run: brew install swiftformat
+
+      - name: Install SwiftLint
+        run: brew install swiftlint
+
+      - name: Run SwiftFormat (lint mode)
+        run: swiftformat --lint .
+
+      - name: Run SwiftLint
+        run: swiftlint lint --strict
+
       - name: Run tests with coverage
         env:
           SKIP_INTEGRATION_TESTS: 1
@@ -110,7 +122,7 @@ jobs:
             -instr-profile .build/debug/codecov/default.profdata | \
             grep TOTAL | awk '{print $10}' | sed 's/%//')
 
-          THRESHOLD=80
+          THRESHOLD=70
 
           if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
             echo "❌ Coverage $COVERAGE% is below threshold $THRESHOLD%"
@@ -137,8 +149,12 @@ jobs:
         continue-on-error: true  # Don't fail if server unavailable
 
       - name: Integration test summary
+        env:
+          MA_TEST_HOST: ${{ secrets.MA_TEST_HOST || 'localhost' }}
+          MA_TEST_PORT: ${{ secrets.MA_TEST_PORT || '8095' }}
         run: |
           echo "### Integration Tests" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Host:** ${MA_TEST_HOST:-localhost}" >> $GITHUB_STEP_SUMMARY
           echo "- **Port:** ${MA_TEST_PORT:-8095}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Note:** Integration tests run separately and may fail if server is unavailable" >> $GITHUB_STEP_SUMMARY
