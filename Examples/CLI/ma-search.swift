@@ -1,0 +1,97 @@
+#!/usr/bin/env swift
+
+// ABOUTME: CLI tool for searching Music Assistant library
+// ABOUTME: Usage: swift ma-search.swift <query>
+
+import Foundation
+
+#if canImport(MusicAssistantKit)
+import MusicAssistantKit
+#else
+print("⚠️  MusicAssistantKit not found. Run from package root or add to swift include path.")
+exit(1)
+#endif
+
+let host = "192.168.23.196"
+let port = 8095
+
+// Parse arguments
+guard CommandLine.arguments.count >= 2 else {
+    print("Usage: swift ma-search.swift <query>")
+    print("Example: swift ma-search.swift 'Queen'")
+    exit(1)
+}
+
+let query = CommandLine.arguments[1...].joined(separator: " ")
+
+@main
+struct MusicSearch {
+    static func main() async {
+        let client = MusicAssistantClient(host: host, port: port)
+
+        do {
+            print("🔌 Connecting to Music Assistant at \(host):\(port)...")
+            try await client.connect()
+            print("✅ Connected!")
+
+            print("🔍 Searching for '\(query)'...")
+            let results = try await client.search(query: query, limit: 10)
+
+            if let resultsDict = results?.value as? [String: Any] {
+                print("\n📊 Search Results:")
+                print("─────────────────────────────────────────")
+
+                // Display tracks
+                if let tracks = resultsDict["tracks"] as? [[String: Any]], !tracks.isEmpty {
+                    print("\n🎵 Tracks:")
+                    for (index, track) in tracks.enumerated() {
+                        let name = track["name"] as? String ?? "Unknown"
+                        let artists = (track["artists"] as? [[String: Any]])?.compactMap { $0["name"] as? String }.joined(separator: ", ") ?? "Unknown Artist"
+                        let duration = track["duration"] as? Double ?? 0
+                        let minutes = Int(duration) / 60
+                        let seconds = Int(duration) % 60
+                        print("  \(index + 1). \(name) - \(artists) [\(minutes):\(String(format: "%02d", seconds))]")
+                    }
+                }
+
+                // Display albums
+                if let albums = resultsDict["albums"] as? [[String: Any]], !albums.isEmpty {
+                    print("\n💿 Albums:")
+                    for (index, album) in albums.enumerated() {
+                        let name = album["name"] as? String ?? "Unknown"
+                        let artists = (album["artists"] as? [[String: Any]])?.compactMap { $0["name"] as? String }.joined(separator: ", ") ?? "Unknown Artist"
+                        print("  \(index + 1). \(name) - \(artists)")
+                    }
+                }
+
+                // Display artists
+                if let artists = resultsDict["artists"] as? [[String: Any]], !artists.isEmpty {
+                    print("\n👤 Artists:")
+                    for (index, artist) in artists.enumerated() {
+                        let name = artist["name"] as? String ?? "Unknown"
+                        print("  \(index + 1). \(name)")
+                    }
+                }
+
+                // Display playlists
+                if let playlists = resultsDict["playlists"] as? [[String: Any]], !playlists.isEmpty {
+                    print("\n📝 Playlists:")
+                    for (index, playlist) in playlists.enumerated() {
+                        let name = playlist["name"] as? String ?? "Unknown"
+                        let owner = playlist["owner"] as? String ?? "Unknown"
+                        print("  \(index + 1). \(name) (by \(owner))")
+                    }
+                }
+            } else {
+                print("No results found.")
+            }
+
+            await client.disconnect()
+            print("\n👋 Disconnected")
+
+        } catch {
+            print("❌ Error: \(error.localizedDescription)")
+            exit(1)
+        }
+    }
+}
