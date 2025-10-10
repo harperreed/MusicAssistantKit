@@ -30,6 +30,4 @@ public enum ConnectionState: Sendable {
         }
         return false
     }
-
-    // Test comment for pre-commit hook
 }

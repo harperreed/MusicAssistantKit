@@ -69,7 +69,7 @@ public actor MusicAssistantClient {
                 let maError = MusicAssistantError.serverError(
                     code: error.errorCode,
                     message: error.error,
-                    details: error.details?.mapValues { $0.value }
+                    details: error.details
                 )
                 continuation.resume(throwing: maError)
             }

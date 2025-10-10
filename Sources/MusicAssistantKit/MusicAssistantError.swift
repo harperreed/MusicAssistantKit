@@ -7,7 +7,7 @@ public enum MusicAssistantError: Error, LocalizedError {
     case notConnected
     case connectionFailed(underlying: Error)
     case commandTimeout(messageId: Int)
-    case serverError(code: Int?, message: String, details: [String: Any]?)
+    case serverError(code: Int?, message: String, details: [String: AnyCodable]?)
     case invalidResponse
     case decodingFailed(Error)
 
