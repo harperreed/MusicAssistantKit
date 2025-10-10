@@ -1,0 +1,38 @@
+# ABOUTME: SwiftFormat configuration for consistent code style
+# ABOUTME: Matches common Swift community standards with minimal opinionation
+
+--swiftversion 6.0
+
+# File options
+--exclude .build,Tests/MusicAssistantKitTests/Mocks
+
+# Formatting options
+--indent 4
+--indentcase false
+--trimwhitespace always
+--insertblanklines enabled
+--removeblanklines enabled
+--allman false
+--wraparguments before-first
+--wrapparameters before-first
+--wrapcollections before-first
+--maxwidth 120
+--linebreaks lf
+
+# Rules
+--enable isEmpty
+--enable sortedImports
+--enable redundantReturn
+--enable redundantSelf
+--enable redundantType
+--enable redundantClosure
+--enable trailingCommas
+--disable blankLinesAtEndOfScope
+--disable blankLinesAtStartOfScope
+
+# Organization
+--organizetypes actor,class,struct,enum,extension
+--structthreshold 0
+--typeattributes prev-line
+--funcattributes prev-line
+--varattributes prev-line
