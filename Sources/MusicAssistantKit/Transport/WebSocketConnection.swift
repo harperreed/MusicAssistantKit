@@ -3,23 +3,23 @@
 
 import Foundation
 
-actor WebSocketConnection {
+actor WebSocketConnection: WebSocketConnectionProtocol {
     private let host: String
     private let port: Int
     private var webSocketTask: URLSessionWebSocketTask?
     private var urlSession: URLSession?
-    private(set) var state: ConnectionState = .disconnected
+    public private(set) var state: ConnectionState = .disconnected
     private var messageHandler: ((MessageEnvelope) async -> Void)?
     private var shouldReconnect: Bool = true
     private var reconnectAttempt: Int = 0
     private let maxReconnectDelay: UInt64 = 60_000_000_000 // 60 seconds in nanoseconds
 
-    init(host: String, port: Int) {
+    public init(host: String, port: Int) {
         self.host = host
         self.port = port
     }
 
-    func connect() async throws {
+    public func connect() async throws {
         guard state.isDisconnected else {
             return
         }
@@ -51,11 +51,11 @@ actor WebSocketConnection {
         startReceiveLoop()
     }
 
-    func setMessageHandler(_ handler: @escaping (MessageEnvelope) async -> Void) {
+    public func setMessageHandler(_ handler: @escaping (MessageEnvelope) async -> Void) {
         self.messageHandler = handler
     }
 
-    func send(_ command: Command) async throws {
+    public func send(_ command: Command) async throws {
         guard let task = webSocketTask, state.isConnected else {
             throw MusicAssistantError.notConnected
         }
@@ -72,7 +72,7 @@ actor WebSocketConnection {
         try await task.send(message)
     }
 
-    func disconnect() async {
+    public func disconnect() async {
         shouldReconnect = false
         reconnectAttempt = 0
         webSocketTask?.cancel(with: .goingAway, reason: nil)

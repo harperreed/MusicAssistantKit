@@ -5,7 +5,7 @@ import Foundation
 import Combine
 
 public actor MusicAssistantClient {
-    private let connection: WebSocketConnection
+    private let connection: any WebSocketConnectionProtocol
     private var nextMessageId: Int = 1
     private var pendingCommands: [Int: CheckedContinuation<AnyCodable?, Error>] = [:]
     public let events = EventPublisher()
@@ -18,6 +18,11 @@ public actor MusicAssistantClient {
 
     public init(host: String, port: Int) {
         self.connection = WebSocketConnection(host: host, port: port)
+    }
+
+    // Test-only initializer for dependency injection
+    internal init(connection: any WebSocketConnectionProtocol) {
+        self.connection = connection
     }
 
     private func setupMessageHandler() async {
