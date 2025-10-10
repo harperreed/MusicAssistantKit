@@ -3,7 +3,7 @@
 
 import Foundation
 
-public struct Result: Codable {
+public struct Result: Codable, @unchecked Sendable {
     let messageId: Int
     let result: AnyCodable?
 
@@ -14,7 +14,8 @@ public struct Result: Codable {
 }
 
 // Helper for decoding arbitrary JSON
-public struct AnyCodable: Codable {
+// Note: @unchecked Sendable because value is Any - caller must ensure thread-safe usage
+public struct AnyCodable: Codable, @unchecked Sendable {
     public let value: Any
 
     public init(_ value: Any) {

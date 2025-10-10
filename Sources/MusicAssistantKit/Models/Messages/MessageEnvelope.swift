@@ -3,7 +3,7 @@
 
 import Foundation
 
-public enum MessageEnvelope {
+public enum MessageEnvelope: Sendable {
     case serverInfo(ServerInfo)
     case result(Result)
     case error(ErrorResponse)

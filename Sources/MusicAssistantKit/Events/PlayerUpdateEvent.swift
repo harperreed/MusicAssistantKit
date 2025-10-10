@@ -3,7 +3,7 @@
 
 import Foundation
 
-public struct PlayerUpdateEvent {
+public struct PlayerUpdateEvent: @unchecked Sendable {
     public let playerId: String
     public let data: [String: AnyCodable]
 

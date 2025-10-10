@@ -3,7 +3,7 @@
 
 import Foundation
 
-public struct ErrorResponse: Codable {
+public struct ErrorResponse: Codable, @unchecked Sendable {
     let messageId: Int
     let error: String
     let errorCode: Int?

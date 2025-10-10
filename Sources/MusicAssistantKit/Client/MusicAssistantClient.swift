@@ -18,21 +18,27 @@ public actor MusicAssistantClient {
 
     public init(host: String, port: Int) {
         self.connection = WebSocketConnection(host: host, port: port)
+    }
 
-        // Set up message handler
-        Task {
-            await connection.setMessageHandler { [weak self] envelope in
-                await self?.handleMessage(envelope)
-            }
+    private func setupMessageHandler() async {
+        await connection.setMessageHandler { [weak self] envelope in
+            await self?.handleMessage(envelope)
         }
     }
 
     public func connect() async throws {
+        await setupMessageHandler()
         try await connection.connect()
     }
 
     public func disconnect() async {
         await connection.disconnect()
+
+        // Cancel all pending commands
+        for (_, continuation) in pendingCommands {
+            continuation.resume(throwing: MusicAssistantError.notConnected)
+        }
+        pendingCommands.removeAll()
     }
 
     private func generateMessageId() -> Int {
@@ -86,17 +92,20 @@ public actor MusicAssistantClient {
             pendingCommands[messageId] = continuation
 
             Task {
+                // Start timeout task first
+                let timeoutTask = Task { [weak self] in
+                    try await Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
+                    await self?.timeoutCommand(messageId: messageId)
+                }
+
                 do {
                     try await connection.send(cmd)
-
-                    // Set timeout
-                    Task { [weak self] in
-                        try await Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
-                        await self?.timeoutCommand(messageId: messageId)
-                    }
                 } catch {
-                    pendingCommands.removeValue(forKey: messageId)
-                    continuation.resume(throwing: error)
+                    // Cancel timeout and resume with error
+                    timeoutTask.cancel()
+                    if let pending = pendingCommands.removeValue(forKey: messageId) {
+                        pending.resume(throwing: error)
+                    }
                 }
             }
         }
@@ -104,10 +113,8 @@ public actor MusicAssistantClient {
 
     // MARK: - Player Control Commands
 
-    public func getPlayers() async throws -> [String] {
-        _ = try await sendCommand(command: "players/all")
-        // For now, return empty array - proper models come later
-        return []
+    public func getPlayers() async throws -> AnyCodable? {
+        return try await sendCommand(command: "players/all")
     }
 
     public func play(playerId: String) async throws {
@@ -135,9 +142,9 @@ public actor MusicAssistantClient {
 
     public func search(query: String, limit: Int = 25) async throws -> AnyCodable? {
         return try await sendCommand(
-            command: "search",
+            command: "music/search",
             args: [
-                "query": query,
+                "search_query": query,
                 "limit": limit
             ]
         )

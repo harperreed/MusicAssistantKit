@@ -3,7 +3,7 @@
 
 import Foundation
 
-public enum ConnectionState {
+public enum ConnectionState: Sendable {
     case disconnected
     case connecting
     case connected(serverInfo: ServerInfo)

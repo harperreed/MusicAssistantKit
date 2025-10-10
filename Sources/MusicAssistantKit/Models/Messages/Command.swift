@@ -3,7 +3,7 @@
 
 import Foundation
 
-public struct Command: Codable {
+public struct Command: Codable, @unchecked Sendable {
     let messageId: Int
     let command: String
     let args: [String: AnyCodable]?

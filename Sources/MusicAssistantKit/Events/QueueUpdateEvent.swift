@@ -3,7 +3,7 @@
 
 import Foundation
 
-public struct QueueUpdateEvent {
+public struct QueueUpdateEvent: @unchecked Sendable {
     public let queueId: String
     public let data: [String: AnyCodable]
 

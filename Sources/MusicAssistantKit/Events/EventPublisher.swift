@@ -2,9 +2,11 @@
 // ABOUTME: Provides type-safe event streams for player updates, queue updates, and raw events
 
 import Foundation
-import Combine
+@preconcurrency import Combine
 
-public class EventPublisher {
+// Note: EventPublisher is @unchecked Sendable because PassthroughSubject doesn't conform to Sendable in older Combine versions
+// The class is immutable after init and PassthroughSubject is thread-safe
+public final class EventPublisher: @unchecked Sendable {
     public let playerUpdates = PassthroughSubject<PlayerUpdateEvent, Never>()
     public let queueUpdates = PassthroughSubject<QueueUpdateEvent, Never>()
     public let rawEvents = PassthroughSubject<Event, Never>()
@@ -19,15 +21,21 @@ public class EventPublisher {
         switch event.event {
         case "player_updated":
             if let objectId = event.objectId,
-               let data = event.data {
-                let playerEvent = PlayerUpdateEvent(playerId: objectId, data: data)
+               let dataWrapper = event.data,
+               let dataDict = dataWrapper.value as? [String: Any] {
+                // Convert [String: Any] to [String: AnyCodable]
+                let anyCodableDict = dataDict.mapValues { AnyCodable($0) }
+                let playerEvent = PlayerUpdateEvent(playerId: objectId, data: anyCodableDict)
                 playerUpdates.send(playerEvent)
             }
 
         case "queue_updated", "queue_items_updated":
             if let objectId = event.objectId,
-               let data = event.data {
-                let queueEvent = QueueUpdateEvent(queueId: objectId, data: data)
+               let dataWrapper = event.data,
+               let dataDict = dataWrapper.value as? [String: Any] {
+                // Convert [String: Any] to [String: AnyCodable]
+                let anyCodableDict = dataDict.mapValues { AnyCodable($0) }
+                let queueEvent = QueueUpdateEvent(queueId: objectId, data: anyCodableDict)
                 queueUpdates.send(queueEvent)
             }
 

@@ -26,7 +26,9 @@ actor WebSocketConnection {
 
         state = .connecting
 
-        let url = URL(string: "ws://\(host):\(port)/ws")!
+        guard let url = URL(string: "ws://\(host):\(port)/ws") else {
+            throw MusicAssistantError.invalidResponse
+        }
         let session = URLSession(configuration: .default)
         let task = session.webSocketTask(with: url)
 
@@ -40,7 +42,7 @@ actor WebSocketConnection {
 
         // Parse server info
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        // Don't use convertFromSnakeCase - we have explicit CodingKeys
         let serverInfo = try decoder.decode(ServerInfo.self, from: message)
 
         state = .connected(serverInfo: serverInfo)
@@ -61,7 +63,10 @@ actor WebSocketConnection {
         let encoder = JSONEncoder()
         encoder.keyEncodingStrategy = .convertToSnakeCase
         let data = try encoder.encode(command)
-        let text = String(data: data, encoding: .utf8)!
+
+        guard let text = String(data: data, encoding: .utf8) else {
+            throw MusicAssistantError.invalidResponse
+        }
 
         let message = URLSessionWebSocketTask.Message.string(text)
         try await task.send(message)
@@ -109,7 +114,9 @@ actor WebSocketConnection {
                 do {
                     let data = try await receiveMessage()
                     let envelope = try parseMessage(data)
-                    await messageHandler?(envelope)
+                    if let handler = messageHandler {
+                        await handler(envelope)
+                    }
                 } catch {
                     // Connection closed or error
                     if shouldReconnect {
@@ -131,8 +138,6 @@ actor WebSocketConnection {
             let delaySeconds = min(Int(pow(2.0, Double(reconnectAttempt - 1))), 60)
             let delayNanoseconds = UInt64(delaySeconds) * 1_000_000_000
 
-            print("Reconnection attempt \(reconnectAttempt) in \(delaySeconds) seconds...")
-
             do {
                 try await Task.sleep(nanoseconds: min(delayNanoseconds, maxReconnectDelay))
             } catch {
@@ -143,17 +148,17 @@ actor WebSocketConnection {
             do {
                 try await connect()
                 reconnectAttempt = 0
-                print("Reconnection successful")
                 return
             } catch {
-                print("Reconnection attempt \(reconnectAttempt) failed: \(error)")
+                // Reconnection failed, will retry
+                continue
             }
         }
     }
 
     private func parseMessage(_ data: Data) throws -> MessageEnvelope {
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        // Don't use convertFromSnakeCase - we have explicit CodingKeys
 
         // Try to peek at the JSON to determine message type
         guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {

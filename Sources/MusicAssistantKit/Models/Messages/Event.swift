@@ -3,10 +3,10 @@
 
 import Foundation
 
-public struct Event: Codable {
+public struct Event: Codable, @unchecked Sendable {
     let event: String
     let objectId: String?
-    let data: [String: AnyCodable]?
+    let data: AnyCodable?
 
     enum CodingKeys: String, CodingKey {
         case event
