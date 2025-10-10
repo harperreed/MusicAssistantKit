@@ -1,0 +1,132 @@
+// ABOUTME: Main Music Assistant client API providing high-level commands and event streams
+// ABOUTME: Actor-based design ensures thread-safe state management across async operations
+
+import Foundation
+
+public actor MusicAssistantClient {
+    private let connection: WebSocketConnection
+    private var nextMessageId: Int = 1
+    private var pendingCommands: [Int: CheckedContinuation<AnyCodable?, Error>] = [:]
+
+    public var isConnected: Bool {
+        get async {
+            await connection.state.isConnected
+        }
+    }
+
+    public init(host: String, port: Int) {
+        self.connection = WebSocketConnection(host: host, port: port)
+
+        // Set up message handler
+        Task {
+            await connection.setMessageHandler { [weak self] envelope in
+                await self?.handleMessage(envelope)
+            }
+        }
+    }
+
+    public func connect() async throws {
+        try await connection.connect()
+    }
+
+    public func disconnect() async {
+        await connection.disconnect()
+    }
+
+    private func generateMessageId() -> Int {
+        let id = nextMessageId
+        nextMessageId += 1
+        return id
+    }
+
+    private func timeoutCommand(messageId: Int) {
+        if let pending = pendingCommands.removeValue(forKey: messageId) {
+            pending.resume(throwing: MusicAssistantError.commandTimeout(messageId: messageId))
+        }
+    }
+
+    private func handleMessage(_ envelope: MessageEnvelope) async {
+        switch envelope {
+        case .result(let result):
+            if let continuation = pendingCommands.removeValue(forKey: result.messageId) {
+                continuation.resume(returning: result.result)
+            }
+        case .error(let error):
+            if let continuation = pendingCommands.removeValue(forKey: error.messageId) {
+                let maError = MusicAssistantError.serverError(
+                    code: error.errorCode,
+                    message: error.error,
+                    details: error.details?.mapValues { $0.value }
+                )
+                continuation.resume(throwing: maError)
+            }
+        case .event:
+            // Handle events later (Task 11)
+            break
+        case .serverInfo, .unknown:
+            break
+        }
+    }
+
+    public func sendCommand(command: String, args: [String: Any]? = nil) async throws -> AnyCodable? {
+        let messageId = generateMessageId()
+
+        // Convert args to [String: AnyCodable] if present
+        let anyCodableArgs: [String: AnyCodable]?
+        if let args = args {
+            anyCodableArgs = args.mapValues { AnyCodable($0) }
+        } else {
+            anyCodableArgs = nil
+        }
+
+        let cmd = Command(messageId: messageId, command: command, args: anyCodableArgs)
+
+        return try await withCheckedThrowingContinuation { continuation in
+            pendingCommands[messageId] = continuation
+
+            Task {
+                do {
+                    try await connection.send(cmd)
+
+                    // Set timeout
+                    Task { [weak self] in
+                        try await Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
+                        await self?.timeoutCommand(messageId: messageId)
+                    }
+                } catch {
+                    pendingCommands.removeValue(forKey: messageId)
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+
+    // MARK: - Player Control Commands
+
+    public func getPlayers() async throws -> [String] {
+        _ = try await sendCommand(command: "players/all")
+        // For now, return empty array - proper models come later
+        return []
+    }
+
+    public func play(playerId: String) async throws {
+        _ = try await sendCommand(
+            command: "players/cmd/play",
+            args: ["player_id": playerId]
+        )
+    }
+
+    public func pause(playerId: String) async throws {
+        _ = try await sendCommand(
+            command: "players/cmd/pause",
+            args: ["player_id": playerId]
+        )
+    }
+
+    public func stop(playerId: String) async throws {
+        _ = try await sendCommand(
+            command: "players/cmd/stop",
+            args: ["player_id": playerId]
+        )
+    }
+}
