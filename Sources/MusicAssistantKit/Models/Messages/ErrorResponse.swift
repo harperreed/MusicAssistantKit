@@ -3,7 +3,7 @@
 
 import Foundation
 
-struct ErrorResponse: Codable {
+public struct ErrorResponse: Codable {
     let messageId: Int
     let error: String
     let errorCode: Int?

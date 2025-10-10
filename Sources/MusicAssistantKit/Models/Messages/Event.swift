@@ -3,7 +3,7 @@
 
 import Foundation
 
-struct Event: Codable {
+public struct Event: Codable {
     let event: String
     let objectId: String?
     let data: [String: AnyCodable]?

@@ -3,7 +3,7 @@
 
 import Foundation
 
-enum MessageEnvelope {
+public enum MessageEnvelope {
     case serverInfo(ServerInfo)
     case result(Result)
     case error(ErrorResponse)

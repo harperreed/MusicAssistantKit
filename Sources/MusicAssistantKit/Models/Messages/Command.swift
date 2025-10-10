@@ -3,10 +3,10 @@
 
 import Foundation
 
-struct Command: Codable {
+public struct Command: Codable {
     let messageId: Int
     let command: String
-    let args: [String: Any]?
+    let args: [String: AnyCodable]?
 
     enum CodingKeys: String, CodingKey {
         case messageId = "message_id"
@@ -14,27 +14,25 @@ struct Command: Codable {
         case args
     }
 
-    init(messageId: Int, command: String, args: [String: Any]? = nil) {
+    public init(messageId: Int, command: String, args: [String: AnyCodable]? = nil) {
         self.messageId = messageId
         self.command = command
         self.args = args
     }
 
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(messageId, forKey: .messageId)
         try container.encode(command, forKey: .command)
         if let args = args {
-            let data = try JSONSerialization.data(withJSONObject: args)
-            let jsonObject = try JSONSerialization.jsonObject(with: data)
-            try container.encode(jsonObject as? [String: String], forKey: .args)
+            try container.encode(args, forKey: .args)
         }
     }
 
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         messageId = try container.decode(Int.self, forKey: .messageId)
         command = try container.decode(String.self, forKey: .command)
-        args = try? container.decode([String: String].self, forKey: .args) as [String: Any]
+        args = try container.decodeIfPresent([String: AnyCodable].self, forKey: .args)
     }
 }
