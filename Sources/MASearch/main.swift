@@ -1,32 +1,24 @@
-#!/usr/bin/env swift
-
 // ABOUTME: CLI tool for searching Music Assistant library
-// ABOUTME: Usage: swift ma-search.swift <query>
+// ABOUTME: Usage: ma-search <query>
 
 import Foundation
-
-#if canImport(MusicAssistantKit)
 import MusicAssistantKit
-#else
-print("⚠️  MusicAssistantKit not found. Run from package root or add to swift include path.")
-exit(1)
-#endif
-
-let host = "192.168.23.196"
-let port = 8095
-
-// Parse arguments
-guard CommandLine.arguments.count >= 2 else {
-    print("Usage: swift ma-search.swift <query>")
-    print("Example: swift ma-search.swift 'Queen'")
-    exit(1)
-}
-
-let query = CommandLine.arguments[1...].joined(separator: " ")
 
 @main
 struct MusicSearch {
     static func main() async {
+        let host = "192.168.23.196"
+        let port = 8095
+
+        // Parse arguments
+        guard CommandLine.arguments.count >= 2 else {
+            print("Usage: ma-search <query>")
+            print("Example: ma-search 'Queen'")
+            exit(1)
+        }
+
+        let query = CommandLine.arguments[1...].joined(separator: " ")
+
         let client = MusicAssistantClient(host: host, port: port)
 
         do {

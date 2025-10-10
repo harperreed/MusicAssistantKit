@@ -14,10 +14,34 @@ let package = Package(
             name: "MusicAssistantKit",
             targets: ["MusicAssistantKit"]
         ),
+        .executable(
+            name: "ma-control",
+            targets: ["MAControl"]
+        ),
+        .executable(
+            name: "ma-search",
+            targets: ["MASearch"]
+        ),
+        .executable(
+            name: "ma-monitor",
+            targets: ["MAMonitor"]
+        ),
     ],
     targets: [
         .target(
             name: "MusicAssistantKit"
+        ),
+        .executableTarget(
+            name: "MAControl",
+            dependencies: ["MusicAssistantKit"]
+        ),
+        .executableTarget(
+            name: "MASearch",
+            dependencies: ["MusicAssistantKit"]
+        ),
+        .executableTarget(
+            name: "MAMonitor",
+            dependencies: ["MusicAssistantKit"]
         ),
         .testTarget(
             name: "MusicAssistantKitTests",

@@ -1,27 +1,19 @@
-#!/usr/bin/env swift
-
 // ABOUTME: CLI tool for monitoring Music Assistant player events in real-time
-// ABOUTME: Usage: swift ma-monitor.swift [player-id]
+// ABOUTME: Usage: ma-monitor [player-id]
 
 import Foundation
 import Combine
-
-#if canImport(MusicAssistantKit)
 import MusicAssistantKit
-#else
-print("⚠️  MusicAssistantKit not found. Run from package root or add to swift include path.")
-exit(1)
-#endif
-
-let host = "192.168.23.196"
-let port = 8095
-
-// Parse arguments
-let filterPlayerId = CommandLine.arguments.count >= 2 ? CommandLine.arguments[1] : nil
 
 @main
 struct MusicMonitor {
     static func main() async {
+        let host = "192.168.23.196"
+        let port = 8095
+
+        // Parse arguments
+        let filterPlayerId = CommandLine.arguments.count >= 2 ? CommandLine.arguments[1] : nil
+
         let client = MusicAssistantClient(host: host, port: port)
         var cancellables = Set<AnyCancellable>()
 
@@ -50,19 +42,19 @@ struct MusicMonitor {
                     print("\n[\(timestamp)] 🎵 Player Update: \(event.playerId)")
 
                     // Parse and display event data
-                    if let state = event.data["state"] as? String {
+                    if let state = event.data["state"]?.value as? String {
                         let emoji = stateEmoji(state)
                         print("  State: \(emoji) \(state)")
                     }
-                    if let volume = event.data["volume_level"] as? Int {
+                    if let volume = event.data["volume_level"]?.value as? Int {
                         print("  Volume: 🔊 \(volume)%")
                     }
-                    if let elapsed = event.data["elapsed_time"] as? Double {
+                    if let elapsed = event.data["elapsed_time"]?.value as? Double {
                         let minutes = Int(elapsed) / 60
                         let seconds = Int(elapsed) % 60
                         print("  Elapsed: ⏱️  \(minutes):\(String(format: "%02d", seconds))")
                     }
-                    if let currentItem = event.data["current_item"] as? [String: Any],
+                    if let currentItem = event.data["current_item"]?.value as? [String: Any],
                        let name = currentItem["name"] as? String {
                         print("  Now Playing: 🎶 \(name)")
                     }
@@ -81,13 +73,13 @@ struct MusicMonitor {
                     let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .none, timeStyle: .medium)
                     print("\n[\(timestamp)] 📋 Queue Update: \(event.queueId)")
 
-                    if let items = event.data["items"] as? Int {
+                    if let items = event.data["items"]?.value as? Int {
                         print("  Items in queue: \(items)")
                     }
-                    if let shuffleEnabled = event.data["shuffle_enabled"] as? Bool {
+                    if let shuffleEnabled = event.data["shuffle_enabled"]?.value as? Bool {
                         print("  Shuffle: \(shuffleEnabled ? "🔀 On" : "➡️  Off")")
                     }
-                    if let repeatMode = event.data["repeat_mode"] as? String {
+                    if let repeatMode = event.data["repeat_mode"]?.value as? String {
                         let emoji = repeatMode == "all" ? "🔁" : repeatMode == "one" ? "🔂" : "➡️"
                         print("  Repeat: \(emoji) \(repeatMode)")
                     }
@@ -96,7 +88,7 @@ struct MusicMonitor {
                 .store(in: &cancellables)
 
             // Keep running until interrupted
-            try await Task.sleep(for: .seconds(3600)) // 1 hour max
+            try await Task.sleep(nanoseconds: 3_600_000_000_000) // 1 hour max
 
         } catch {
             print("❌ Error: \(error.localizedDescription)")

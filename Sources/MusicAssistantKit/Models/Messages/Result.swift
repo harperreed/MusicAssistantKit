@@ -15,7 +15,7 @@ public struct Result: Codable {
 
 // Helper for decoding arbitrary JSON
 public struct AnyCodable: Codable {
-    let value: Any
+    public let value: Any
 
     public init(_ value: Any) {
         self.value = value
