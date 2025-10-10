@@ -2,11 +2,13 @@
 // ABOUTME: Actor-based design ensures thread-safe state management across async operations
 
 import Foundation
+import Combine
 
 public actor MusicAssistantClient {
     private let connection: WebSocketConnection
     private var nextMessageId: Int = 1
     private var pendingCommands: [Int: CheckedContinuation<AnyCodable?, Error>] = [:]
+    public let events = EventPublisher()
 
     public var isConnected: Bool {
         get async {
@@ -60,9 +62,8 @@ public actor MusicAssistantClient {
                 )
                 continuation.resume(throwing: maError)
             }
-        case .event:
-            // Handle events later (Task 11)
-            break
+        case .event(let event):
+            events.publish(event)
         case .serverInfo, .unknown:
             break
         }
@@ -127,6 +128,82 @@ public actor MusicAssistantClient {
         _ = try await sendCommand(
             command: "players/cmd/stop",
             args: ["player_id": playerId]
+        )
+    }
+
+    // MARK: - Search Commands
+
+    public func search(query: String, limit: Int = 25) async throws -> AnyCodable? {
+        return try await sendCommand(
+            command: "search",
+            args: [
+                "query": query,
+                "limit": limit
+            ]
+        )
+    }
+
+    // MARK: - Queue Commands
+
+    public func getQueue(queueId: String) async throws -> AnyCodable? {
+        return try await sendCommand(
+            command: "player_queues/get",
+            args: ["queue_id": queueId]
+        )
+    }
+
+    public func getQueueItems(queueId: String, limit: Int = 50, offset: Int = 0) async throws -> AnyCodable? {
+        return try await sendCommand(
+            command: "player_queues/items",
+            args: [
+                "queue_id": queueId,
+                "limit": limit,
+                "offset": offset
+            ]
+        )
+    }
+
+    public func playMedia(
+        queueId: String,
+        uri: String,
+        option: String = "play",
+        radioMode: Bool = false
+    ) async throws -> AnyCodable? {
+        return try await sendCommand(
+            command: "player_queues/play_media",
+            args: [
+                "queue_id": queueId,
+                "uri": uri,
+                "option": option,
+                "radio_mode": radioMode
+            ]
+        )
+    }
+
+    public func clearQueue(queueId: String) async throws {
+        _ = try await sendCommand(
+            command: "player_queues/clear",
+            args: ["queue_id": queueId]
+        )
+    }
+
+    public func shuffle(queueId: String, enabled: Bool) async throws {
+        _ = try await sendCommand(
+            command: "player_queues/shuffle",
+            args: [
+                "queue_id": queueId,
+                "shuffle": enabled
+            ]
+        )
+    }
+
+    public func setRepeat(queueId: String, mode: String) async throws {
+        _ = try await sendCommand(
+            command: "player_queues/repeat",
+            args: [
+                "queue_id": queueId,
+                "repeat_mode": mode
+            ]
         )
     }
 }

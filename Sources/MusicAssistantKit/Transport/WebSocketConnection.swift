@@ -10,6 +10,9 @@ actor WebSocketConnection {
     private var urlSession: URLSession?
     private(set) var state: ConnectionState = .disconnected
     private var messageHandler: ((MessageEnvelope) async -> Void)?
+    private var shouldReconnect: Bool = true
+    private var reconnectAttempt: Int = 0
+    private let maxReconnectDelay: UInt64 = 60_000_000_000 // 60 seconds in nanoseconds
 
     init(host: String, port: Int) {
         self.host = host
@@ -65,7 +68,16 @@ actor WebSocketConnection {
     }
 
     func disconnect() async {
+        shouldReconnect = false
+        reconnectAttempt = 0
         webSocketTask?.cancel(with: .goingAway, reason: nil)
+        webSocketTask = nil
+        urlSession = nil
+        state = .disconnected
+    }
+
+    func forceDisconnect() async {
+        webSocketTask?.cancel(with: .abnormalClosure, reason: nil)
         webSocketTask = nil
         urlSession = nil
         state = .disconnected
@@ -100,8 +112,41 @@ actor WebSocketConnection {
                     await messageHandler?(envelope)
                 } catch {
                     // Connection closed or error
+                    if shouldReconnect {
+                        await attemptReconnect()
+                    }
                     break
                 }
+            }
+        }
+    }
+
+    private func attemptReconnect() async {
+        state = .disconnected
+
+        while shouldReconnect {
+            reconnectAttempt += 1
+
+            // Calculate exponential backoff: 1s, 2s, 4s, 8s, 16s, 32s, max 60s
+            let delaySeconds = min(Int(pow(2.0, Double(reconnectAttempt - 1))), 60)
+            let delayNanoseconds = UInt64(delaySeconds) * 1_000_000_000
+
+            print("Reconnection attempt \(reconnectAttempt) in \(delaySeconds) seconds...")
+
+            do {
+                try await Task.sleep(nanoseconds: min(delayNanoseconds, maxReconnectDelay))
+            } catch {
+                // Task was cancelled
+                return
+            }
+
+            do {
+                try await connect()
+                reconnectAttempt = 0
+                print("Reconnection successful")
+                return
+            } catch {
+                print("Reconnection attempt \(reconnectAttempt) failed: \(error)")
             }
         }
     }
