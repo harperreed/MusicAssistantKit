@@ -8,11 +8,25 @@ import MusicAssistantKit
 @main
 struct MusicMonitor {
     static func main() async {
-        let host = "192.168.23.196"
-        let port = 8095
+        var host = "192.168.23.196"
+        var port = 8095
+        var args = Array(CommandLine.arguments[1...])
 
-        // Parse arguments
-        let filterPlayerId = CommandLine.arguments.count >= 2 ? CommandLine.arguments[1] : nil
+        // Parse optional --host and --port flags
+        while args.count >= 2 {
+            if args[0] == "--host" {
+                host = args[1]
+                args.removeFirst(2)
+            } else if args[0] == "--port" {
+                port = Int(args[1]) ?? 8095
+                args.removeFirst(2)
+            } else {
+                break
+            }
+        }
+
+        // Parse optional player filter
+        let filterPlayerId = args.isEmpty ? nil : args[0]
 
         let client = MusicAssistantClient(host: host, port: port)
         var cancellables = Set<AnyCancellable>()

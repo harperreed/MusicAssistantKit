@@ -17,11 +17,16 @@ Executables will be in `.build/debug/`:
 
 ## Usage
 
+All tools accept optional `--host` and `--port` arguments. Default: `192.168.23.196:8095`
+
 ### 1. Player Control
 
 ```bash
-# Play on kitchen speaker
+# Use default server (192.168.23.196:8095)
 .build/debug/ma-control media_player.kitchen play
+
+# Specify custom server
+.build/debug/ma-control --host 192.168.1.100 --port 8095 media_player.kitchen play
 
 # Pause
 .build/debug/ma-control media_player.kitchen pause
@@ -42,9 +47,12 @@ Executables will be in `.build/debug/`:
 ### 2. Search Library
 
 ```bash
-# Search for artist/track/album
+# Search for artist/track/album (default server)
 .build/debug/ma-search Queen
 .build/debug/ma-search "Bohemian Rhapsody"
+
+# Search on custom server
+.build/debug/ma-search --host 192.168.1.100 --port 8095 "Beatles"
 ```
 
 **Output:**
@@ -72,11 +80,15 @@ Executables will be in `.build/debug/`:
 ### 3. Real-Time Event Monitor
 
 ```bash
-# Monitor all players
+# Monitor all players (default server)
 .build/debug/ma-monitor
 
 # Monitor specific player
 .build/debug/ma-monitor media_player.kitchen
+
+# Monitor on custom server
+.build/debug/ma-monitor --host 192.168.1.100 --port 8095
+.build/debug/ma-monitor --host 192.168.1.100 --port 8095 media_player.kitchen
 ```
 
 **Output:**
@@ -110,11 +122,21 @@ Press Ctrl+C to exit
 
 ## Configuration
 
-Edit the `host` and `port` constants in each main.swift file to match your Music Assistant server:
+### Command-Line Arguments (Recommended)
+
+Use `--host` and `--port` flags:
+
+```bash
+.build/debug/ma-control --host YOUR_IP --port YOUR_PORT media_player.kitchen play
+```
+
+### Default Server
+
+The default server is `192.168.23.196:8095`. To change it, edit the defaults in each `main.swift` file:
 
 ```swift
-let host = "192.168.23.196"  // Your server IP
-let port = 8095              // Your server port
+var host = "192.168.23.196"  // Your default server IP
+var port = 8095              // Your default server port
 ```
 
 ## Installation (Optional)

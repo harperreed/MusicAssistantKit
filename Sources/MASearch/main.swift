@@ -7,17 +7,37 @@ import MusicAssistantKit
 @main
 struct MusicSearch {
     static func main() async {
-        let host = "192.168.23.196"
-        let port = 8095
-
         // Parse arguments
         guard CommandLine.arguments.count >= 2 else {
-            print("Usage: ma-search <query>")
+            print("Usage: ma-search [--host HOST] [--port PORT] <query>")
             print("Example: ma-search 'Queen'")
+            print("Example: ma-search --host 192.168.1.100 --port 8095 'Beatles'")
             exit(1)
         }
 
-        let query = CommandLine.arguments[1...].joined(separator: " ")
+        var host = "192.168.23.196"
+        var port = 8095
+        var args = Array(CommandLine.arguments[1...])
+
+        // Parse optional --host and --port flags
+        while args.count >= 2 {
+            if args[0] == "--host" {
+                host = args[1]
+                args.removeFirst(2)
+            } else if args[0] == "--port" {
+                port = Int(args[1]) ?? 8095
+                args.removeFirst(2)
+            } else {
+                break
+            }
+        }
+
+        guard !args.isEmpty else {
+            print("❌ Missing required argument: <query>")
+            exit(1)
+        }
+
+        let query = args.joined(separator: " ")
 
         let client = MusicAssistantClient(host: host, port: port)
 

@@ -7,18 +7,38 @@ import MusicAssistantKit
 @main
 struct MusicControl {
     static func main() async {
-        let host = "192.168.23.196"
-        let port = 8095
-
         // Parse arguments
         guard CommandLine.arguments.count >= 3 else {
-            print("Usage: ma-control <player-id> <play|pause|stop>")
+            print("Usage: ma-control [--host HOST] [--port PORT] <player-id> <play|pause|stop>")
             print("Example: ma-control media_player.kitchen play")
+            print("Example: ma-control --host 192.168.1.100 --port 8095 media_player.kitchen play")
             exit(1)
         }
 
-        let playerId = CommandLine.arguments[1]
-        let command = CommandLine.arguments[2].lowercased()
+        var host = "192.168.23.196"
+        var port = 8095
+        var args = Array(CommandLine.arguments[1...])
+
+        // Parse optional --host and --port flags
+        while args.count >= 2 {
+            if args[0] == "--host" {
+                host = args[1]
+                args.removeFirst(2)
+            } else if args[0] == "--port" {
+                port = Int(args[1]) ?? 8095
+                args.removeFirst(2)
+            } else {
+                break
+            }
+        }
+
+        guard args.count >= 2 else {
+            print("❌ Missing required arguments: <player-id> <play|pause|stop>")
+            exit(1)
+        }
+
+        let playerId = args[0]
+        let command = args[1].lowercased()
 
         guard ["play", "pause", "stop"].contains(command) else {
             print("❌ Invalid command. Use: play, pause, or stop")
