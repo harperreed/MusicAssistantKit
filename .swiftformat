@@ -29,6 +29,7 @@
 --enable trailingCommas
 --disable blankLinesAtEndOfScope
 --disable blankLinesAtStartOfScope
+--disable wrapMultilineStatementBraces
 
 # Organization
 --organizetypes actor,class,struct,enum,extension

@@ -105,7 +105,8 @@ struct MusicStatus {
 
     static func displayNowPlaying(_ player: [String: Any]) {
         guard let currentItem = player["current_item"] as? [String: Any],
-              let itemName = currentItem["name"] as? String else {
+              let itemName = currentItem["name"] as? String
+        else {
             return
         }
 
