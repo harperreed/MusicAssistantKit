@@ -7,7 +7,6 @@ import Testing
 
 @Suite("Event Decoding Tests")
 struct EventTests {
-
     @Test("Event decodes with all fields")
     func eventDecodesWithAllFields() throws {
         let json = """
@@ -22,7 +21,8 @@ struct EventTests {
         """
 
         let decoder = JSONDecoder()
-        let event = try decoder.decode(Event.self, from: json.data(using: .utf8)!)
+        let data = try #require(json.data(using: .utf8))
+        let event = try decoder.decode(Event.self, from: data)
 
         #expect(event.event == "player_updated")
         #expect(event.objectId == "player-123")
@@ -41,7 +41,8 @@ struct EventTests {
         """
 
         let decoder = JSONDecoder()
-        let event = try decoder.decode(Event.self, from: json.data(using: .utf8)!)
+        let data = try #require(json.data(using: .utf8))
+        let event = try decoder.decode(Event.self, from: data)
 
         #expect(event.event == "server_shutdown")
         #expect(event.objectId == nil)
@@ -58,7 +59,8 @@ struct EventTests {
         """
 
         let decoder = JSONDecoder()
-        let event = try decoder.decode(Event.self, from: json.data(using: .utf8)!)
+        let data = try #require(json.data(using: .utf8))
+        let event = try decoder.decode(Event.self, from: data)
 
         #expect(event.event == "queue_items_updated")
         #expect(event.objectId == "queue-456")
@@ -82,7 +84,8 @@ struct EventTests {
         """
 
         let decoder = JSONDecoder()
-        let event = try decoder.decode(Event.self, from: json.data(using: .utf8)!)
+        let data = try #require(json.data(using: .utf8))
+        let event = try decoder.decode(Event.self, from: data)
 
         #expect(event.event == "queue_updated")
         #expect(event.objectId == "queue-789")

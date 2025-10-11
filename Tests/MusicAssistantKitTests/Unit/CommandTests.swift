@@ -7,7 +7,6 @@ import Testing
 
 @Suite("Command Encoding Tests")
 struct CommandTests {
-
     @Test("Command encodes with snake_case keys")
     func commandEncodesWithSnakeCase() throws {
         let command = Command(messageId: 123, command: "players/all", args: nil)
@@ -56,7 +55,8 @@ struct CommandTests {
         """
 
         let decoder = JSONDecoder()
-        let command = try decoder.decode(Command.self, from: json.data(using: .utf8)!)
+        let data = try #require(json.data(using: .utf8))
+        let command = try decoder.decode(Command.self, from: data)
 
         #expect(command.messageId == 789)
         #expect(command.command == "music/search")
@@ -74,7 +74,8 @@ struct CommandTests {
         """
 
         let decoder = JSONDecoder()
-        let command = try decoder.decode(Command.self, from: json.data(using: .utf8)!)
+        let data = try #require(json.data(using: .utf8))
+        let command = try decoder.decode(Command.self, from: data)
 
         #expect(command.messageId == 999)
         #expect(command.command == "players/all")

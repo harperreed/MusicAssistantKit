@@ -7,7 +7,6 @@ import Testing
 
 @Suite("WebSocket Parsing Unit Tests")
 struct WebSocketParsingTests {
-
     // MARK: - Message Parsing Tests
 
     @Test("parseMessage detects ServerInfo message")
@@ -23,7 +22,7 @@ struct WebSocketParsingTests {
         }
         """
 
-        let data = json.data(using: .utf8)!
+        let data = try #require(json.data(using: .utf8))
         let connection = WebSocketConnection(host: "localhost", port: 8095)
 
         // We can't directly test parseMessage as it's private,
@@ -47,7 +46,7 @@ struct WebSocketParsingTests {
         }
         """
 
-        let data = json.data(using: .utf8)!
+        let data = try #require(json.data(using: .utf8))
         let decoder = JSONDecoder()
         let event = try decoder.decode(Event.self, from: data)
 
@@ -66,7 +65,7 @@ struct WebSocketParsingTests {
         }
         """
 
-        let data = json.data(using: .utf8)!
+        let data = try #require(json.data(using: .utf8))
         let decoder = JSONDecoder()
         let result = try decoder.decode(Result.self, from: data)
 
@@ -87,7 +86,7 @@ struct WebSocketParsingTests {
         }
         """
 
-        let data = json.data(using: .utf8)!
+        let data = try #require(json.data(using: .utf8))
         let decoder = JSONDecoder()
         let error = try decoder.decode(ErrorResponse.self, from: data)
 
@@ -120,7 +119,7 @@ struct WebSocketParsingTests {
         let encoder = JSONEncoder()
         encoder.keyEncodingStrategy = .convertToSnakeCase
         let data = try encoder.encode(command)
-        let json = String(data: data, encoding: .utf8)!
+        let json = try #require(String(data: data, encoding: .utf8))
 
         #expect(json.contains("message_id"))
         // JSON encoder escapes slashes, so we check for the escaped version
@@ -138,7 +137,7 @@ struct WebSocketParsingTests {
         let encoder = JSONEncoder()
         encoder.keyEncodingStrategy = .convertToSnakeCase
         let data = try encoder.encode(command)
-        let json = String(data: data, encoding: .utf8)!
+        let json = try #require(String(data: data, encoding: .utf8))
 
         #expect(json.contains("message_id"))
         // JSON encoder escapes slashes

@@ -8,7 +8,6 @@ import Testing
 
 @Suite("EventPublisher Unit Tests")
 struct EventPublisherTests {
-
     @Test("Publishes player update events to playerUpdates subject")
     func publishesPlayerUpdateEvents() async {
         let publisher = EventPublisher()

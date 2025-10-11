@@ -57,6 +57,7 @@ disabled_rules:
   - todo  # Allow TODO comments
   - line_length  # SwiftFormat handles this
   - trailing_comma  # SwiftFormat handles this
+  - blanket_disable_command  # Allow disabling rules for comprehensive test files
 
 # Custom rule values
 file_length:

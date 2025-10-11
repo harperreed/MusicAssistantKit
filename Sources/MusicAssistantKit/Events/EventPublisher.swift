@@ -23,8 +23,7 @@ public final class EventPublisher: @unchecked Sendable {
         case "player_updated":
             if let objectId = event.objectId,
                let dataWrapper = event.data,
-               let dataDict = dataWrapper.value as? [String: Any]
-            {
+               let dataDict = dataWrapper.value as? [String: Any] {
                 // Convert [String: Any] to [String: AnyCodable]
                 let anyCodableDict = dataDict.mapValues { AnyCodable($0) }
                 let playerEvent = PlayerUpdateEvent(playerId: objectId, data: anyCodableDict)
@@ -34,8 +33,7 @@ public final class EventPublisher: @unchecked Sendable {
         case "queue_updated", "queue_items_updated":
             if let objectId = event.objectId,
                let dataWrapper = event.data,
-               let dataDict = dataWrapper.value as? [String: Any]
-            {
+               let dataDict = dataWrapper.value as? [String: Any] {
                 // Convert [String: Any] to [String: AnyCodable]
                 let anyCodableDict = dataDict.mapValues { AnyCodable($0) }
                 let queueEvent = QueueUpdateEvent(queueId: objectId, data: anyCodableDict)

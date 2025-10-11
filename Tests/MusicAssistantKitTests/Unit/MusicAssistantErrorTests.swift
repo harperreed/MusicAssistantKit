@@ -7,7 +7,6 @@ import Testing
 
 @Suite("MusicAssistantError Unit Tests")
 struct MusicAssistantErrorTests {
-
     @Test("notConnected error has correct description")
     func notConnectedDescription() {
         let error = MusicAssistantError.notConnected

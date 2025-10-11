@@ -7,7 +7,6 @@ import Testing
 
 @Suite("ConnectionState Unit Tests")
 struct ConnectionStateTests {
-
     @Test("isConnected returns true when state is connected")
     func isConnectedWhenConnected() {
         let serverInfo = ServerInfo(

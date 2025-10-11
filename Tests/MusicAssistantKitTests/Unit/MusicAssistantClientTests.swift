@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 // ABOUTME: Comprehensive unit tests for MusicAssistantClient using mock connection
 // ABOUTME: Tests command methods, message handling, timeouts, and error scenarios
 
@@ -5,9 +6,9 @@ import Foundation
 @testable import MusicAssistantKit
 import Testing
 
+// swiftlint:disable type_body_length
 @Suite("MusicAssistantClient Unit Tests")
 struct MusicAssistantClientTests {
-
     // MARK: - Initialization and Connection Tests
 
     @Test("Client initializes with host and port")
@@ -77,7 +78,8 @@ struct MusicAssistantClientTests {
         let command = await mock.getLastCommand()
         #expect(command?.command == "players/all")
 
-        await mock.simulateResult(messageId: command!.messageId, result: AnyCodable(["players": []]))
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: AnyCodable(["players": []]))
         _ = try await task.value
     }
 
@@ -97,7 +99,8 @@ struct MusicAssistantClientTests {
         #expect(command?.command == "players/cmd/play")
         #expect(command?.args?["player_id"]?.value as? String == "test-player")
 
-        await mock.simulateResult(messageId: command!.messageId, result: nil)
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: nil)
         try await task.value
     }
 
@@ -117,7 +120,8 @@ struct MusicAssistantClientTests {
         #expect(command?.command == "players/cmd/pause")
         #expect(command?.args?["player_id"]?.value as? String == "test-player")
 
-        await mock.simulateResult(messageId: command!.messageId, result: nil)
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: nil)
         try await task.value
     }
 
@@ -137,7 +141,8 @@ struct MusicAssistantClientTests {
         #expect(command?.command == "players/cmd/stop")
         #expect(command?.args?["player_id"]?.value as? String == "test-player")
 
-        await mock.simulateResult(messageId: command!.messageId, result: nil)
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: nil)
         try await task.value
     }
 
@@ -160,7 +165,8 @@ struct MusicAssistantClientTests {
         #expect(command?.args?["search_query"]?.value as? String == "test query")
         #expect(command?.args?["limit"]?.value as? Int == 25)
 
-        await mock.simulateResult(messageId: command!.messageId, result: AnyCodable(["results": []]))
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: AnyCodable(["results": []]))
         _ = try await task.value
     }
 
@@ -179,7 +185,8 @@ struct MusicAssistantClientTests {
         let command = await mock.getLastCommand()
         #expect(command?.args?["limit"]?.value as? Int == 50)
 
-        await mock.simulateResult(messageId: command!.messageId, result: AnyCodable(["results": []]))
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: AnyCodable(["results": []]))
         _ = try await task.value
     }
 
@@ -201,7 +208,8 @@ struct MusicAssistantClientTests {
         #expect(command?.command == "player_queues/get")
         #expect(command?.args?["queue_id"]?.value as? String == "test-queue")
 
-        await mock.simulateResult(messageId: command!.messageId, result: AnyCodable(["queue": []]))
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: AnyCodable(["queue": []]))
         _ = try await task.value
     }
 
@@ -223,7 +231,8 @@ struct MusicAssistantClientTests {
         #expect(command?.args?["limit"]?.value as? Int == 50)
         #expect(command?.args?["offset"]?.value as? Int == 0)
 
-        await mock.simulateResult(messageId: command!.messageId, result: AnyCodable(["items": []]))
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: AnyCodable(["items": []]))
         _ = try await task.value
     }
 
@@ -243,7 +252,8 @@ struct MusicAssistantClientTests {
         #expect(command?.args?["limit"]?.value as? Int == 100)
         #expect(command?.args?["offset"]?.value as? Int == 50)
 
-        await mock.simulateResult(messageId: command!.messageId, result: AnyCodable(["items": []]))
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: AnyCodable(["items": []]))
         _ = try await task.value
     }
 
@@ -266,7 +276,8 @@ struct MusicAssistantClientTests {
         #expect(command?.args?["option"]?.value as? String == "play")
         #expect(command?.args?["radio_mode"]?.value as? Bool == false)
 
-        await mock.simulateResult(messageId: command!.messageId, result: nil)
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: nil)
         _ = try await task.value
     }
 
@@ -286,7 +297,8 @@ struct MusicAssistantClientTests {
         #expect(command?.args?["option"]?.value as? String == "add")
         #expect(command?.args?["radio_mode"]?.value as? Bool == true)
 
-        await mock.simulateResult(messageId: command!.messageId, result: nil)
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: nil)
         _ = try await task.value
     }
 
@@ -306,7 +318,8 @@ struct MusicAssistantClientTests {
         #expect(command?.command == "player_queues/clear")
         #expect(command?.args?["queue_id"]?.value as? String == "test-queue")
 
-        await mock.simulateResult(messageId: command!.messageId, result: nil)
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: nil)
         try await task.value
     }
 
@@ -327,7 +340,8 @@ struct MusicAssistantClientTests {
         #expect(command?.args?["queue_id"]?.value as? String == "test-queue")
         #expect(command?.args?["shuffle"]?.value as? Bool == true)
 
-        await mock.simulateResult(messageId: command!.messageId, result: nil)
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: nil)
         try await task.value
     }
 
@@ -346,7 +360,8 @@ struct MusicAssistantClientTests {
         let command = await mock.getLastCommand()
         #expect(command?.args?["shuffle"]?.value as? Bool == false)
 
-        await mock.simulateResult(messageId: command!.messageId, result: nil)
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: nil)
         try await task.value
     }
 
@@ -367,7 +382,8 @@ struct MusicAssistantClientTests {
         #expect(command?.args?["queue_id"]?.value as? String == "test-queue")
         #expect(command?.args?["repeat_mode"]?.value as? String == "all")
 
-        await mock.simulateResult(messageId: command!.messageId, result: nil)
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: nil)
         try await task.value
     }
 
@@ -387,7 +403,8 @@ struct MusicAssistantClientTests {
         try await Task.sleep(nanoseconds: 10_000_000)
         let command = await mock.getLastCommand()
 
-        await mock.simulateResult(messageId: command!.messageId, result: AnyCodable("success"))
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: AnyCodable("success"))
 
         let result = try await task.value
         #expect(result?.value as? String == "success")
@@ -407,7 +424,8 @@ struct MusicAssistantClientTests {
         try await Task.sleep(nanoseconds: 10_000_000)
         let command = await mock.getLastCommand()
 
-        await mock.simulateError(messageId: command!.messageId, error: "Test error", code: 500)
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateError(messageId: commandMessageId, error: "Test error", code: 500)
 
         do {
             _ = try await task.value
@@ -478,7 +496,8 @@ struct MusicAssistantClientTests {
         }
         try await Task.sleep(nanoseconds: 10_000_000)
         let command1 = await mock.getLastCommand()
-        await mock.simulateResult(messageId: command1!.messageId, result: nil)
+        let command1MessageId = try #require(command1?.messageId)
+        await mock.simulateResult(messageId: command1MessageId, result: nil)
         _ = try await task1.value
 
         // Send second command
@@ -487,9 +506,10 @@ struct MusicAssistantClientTests {
         }
         try await Task.sleep(nanoseconds: 10_000_000)
         let command2 = await mock.getLastCommand()
-        await mock.simulateResult(messageId: command2!.messageId, result: nil)
+        let command2MessageId = try #require(command2?.messageId)
+        await mock.simulateResult(messageId: command2MessageId, result: nil)
         _ = try await task2.value
 
-        #expect(command2!.messageId > command1!.messageId)
+        #expect(command2MessageId > command1MessageId)
     }
 }
