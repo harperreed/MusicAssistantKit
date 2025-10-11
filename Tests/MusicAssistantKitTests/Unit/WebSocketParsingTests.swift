@@ -2,8 +2,8 @@
 // ABOUTME: Validates message envelope detection and routing logic
 
 import Foundation
-import Testing
 @testable import MusicAssistantKit
+import Testing
 
 @Suite("WebSocket Parsing Unit Tests")
 struct WebSocketParsingTests {

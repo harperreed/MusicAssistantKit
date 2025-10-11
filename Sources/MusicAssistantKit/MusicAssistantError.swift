@@ -15,18 +15,18 @@ public enum MusicAssistantError: Error, LocalizedError {
         switch self {
         case .notConnected:
             return "Not connected to Music Assistant server"
-        case .connectionFailed(let error):
+        case let .connectionFailed(error):
             return "Connection failed: \(error.localizedDescription)"
-        case .commandTimeout(let messageId):
+        case let .commandTimeout(messageId):
             return "Command \(messageId) timed out after 30 seconds"
-        case .serverError(let code, let message, _):
-            if let code = code {
+        case let .serverError(code, message, _):
+            if let code {
                 return "Server error \(code): \(message)"
             }
             return "Server error: \(message)"
         case .invalidResponse:
             return "Received invalid response from server"
-        case .decodingFailed(let error):
+        case let .decodingFailed(error):
             return "Failed to decode response: \(error.localizedDescription)"
         }
     }

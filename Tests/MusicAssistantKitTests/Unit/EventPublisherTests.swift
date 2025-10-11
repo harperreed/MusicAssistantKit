@@ -1,10 +1,10 @@
 // ABOUTME: Unit tests for EventPublisher Combine-based event routing
 // ABOUTME: Validates event distribution to typed subjects and raw event stream
 
-import Foundation
-import Testing
 import Combine
+import Foundation
 @testable import MusicAssistantKit
+import Testing
 
 @Suite("EventPublisher Unit Tests")
 struct EventPublisherTests {

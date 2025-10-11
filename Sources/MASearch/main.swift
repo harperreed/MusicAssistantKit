@@ -58,7 +58,8 @@ struct MusicSearch {
                     print("\n🎵 Tracks:")
                     for (index, track) in tracks.enumerated() {
                         let name = track["name"] as? String ?? "Unknown"
-                        let artists = (track["artists"] as? [[String: Any]])?.compactMap { $0["name"] as? String }.joined(separator: ", ") ?? "Unknown Artist"
+                        let artists = (track["artists"] as? [[String: Any]])?.compactMap { $0["name"] as? String }
+                            .joined(separator: ", ") ?? "Unknown Artist"
                         let duration = track["duration"] as? Double ?? 0
                         let minutes = Int(duration) / 60
                         let seconds = Int(duration) % 60
@@ -71,7 +72,8 @@ struct MusicSearch {
                     print("\n💿 Albums:")
                     for (index, album) in albums.enumerated() {
                         let name = album["name"] as? String ?? "Unknown"
-                        let artists = (album["artists"] as? [[String: Any]])?.compactMap { $0["name"] as? String }.joined(separator: ", ") ?? "Unknown Artist"
+                        let artists = (album["artists"] as? [[String: Any]])?.compactMap { $0["name"] as? String }
+                            .joined(separator: ", ") ?? "Unknown Artist"
                         print("  \(index + 1). \(name) - \(artists)")
                     }
                 }

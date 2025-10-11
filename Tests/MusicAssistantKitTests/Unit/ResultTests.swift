@@ -2,8 +2,8 @@
 // ABOUTME: Validates message_id correlation and result payload handling
 
 import Foundation
-import Testing
 @testable import MusicAssistantKit
+import Testing
 
 @Suite("Result Decoding Tests")
 struct ResultTests {

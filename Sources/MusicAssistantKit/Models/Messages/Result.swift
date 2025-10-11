@@ -34,7 +34,7 @@ public struct AnyCodable: Codable, @unchecked Sendable {
         } else if let bool = try? container.decode(Bool.self) {
             value = bool
         } else if let array = try? container.decode([AnyCodable].self) {
-            value = array.map { $0.value }
+            value = array.map(\.value)
         } else if let dict = try? container.decode([String: AnyCodable].self) {
             value = dict.mapValues { $0.value }
         } else if container.decodeNil() {

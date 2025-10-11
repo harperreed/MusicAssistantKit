@@ -7,7 +7,7 @@ let package = Package(
     name: "MusicAssistantKit",
     platforms: [
         .iOS(.v15),
-        .macOS(.v13)
+        .macOS(.v13),
     ],
     products: [
         .library(
@@ -32,7 +32,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-testing.git", from: "0.10.0")
+        .package(url: "https://github.com/apple/swift-testing.git", from: "0.10.0"),
     ],
     targets: [
         .target(
@@ -58,7 +58,7 @@ let package = Package(
             name: "MusicAssistantKitTests",
             dependencies: [
                 "MusicAssistantKit",
-                .product(name: "Testing", package: "swift-testing")
+                .product(name: "Testing", package: "swift-testing"),
             ]
         ),
     ]

@@ -2,8 +2,8 @@
 // ABOUTME: Validates snake_case conversion and proper structure of command messages
 
 import Foundation
-import Testing
 @testable import MusicAssistantKit
+import Testing
 
 @Suite("Command Encoding Tests")
 struct CommandTests {
@@ -25,7 +25,7 @@ struct CommandTests {
     func commandEncodesWithArgs() throws {
         let args: [String: AnyCodable] = [
             "player_id": AnyCodable("test-player"),
-            "volume": AnyCodable(50)
+            "volume": AnyCodable(50),
         ]
         let command = Command(messageId: 456, command: "players/cmd/volume_set", args: args)
 

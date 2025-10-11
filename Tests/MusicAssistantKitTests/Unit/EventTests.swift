@@ -2,8 +2,8 @@
 // ABOUTME: Validates event structure, object_id handling, and data payload parsing
 
 import Foundation
-import Testing
 @testable import MusicAssistantKit
+import Testing
 
 @Suite("Event Decoding Tests")
 struct EventTests {

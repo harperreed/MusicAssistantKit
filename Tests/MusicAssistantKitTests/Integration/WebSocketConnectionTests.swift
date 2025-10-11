@@ -2,8 +2,8 @@
 // ABOUTME: Uses MA_TEST_HOST and MA_TEST_PORT environment variables for server configuration
 
 import Foundation
-import Testing
 @testable import MusicAssistantKit
+import Testing
 
 @Suite("WebSocket Connection Integration Tests")
 struct WebSocketConnectionTests {
@@ -11,7 +11,10 @@ struct WebSocketConnectionTests {
     let testPort = Int(ProcessInfo.processInfo.environment["MA_TEST_PORT"] ?? "8095") ?? 8095
     let skipIntegration = ProcessInfo.processInfo.environment["SKIP_INTEGRATION_TESTS"] != nil
 
-    @Test("Connect to Music Assistant server", .enabled(if: ProcessInfo.processInfo.environment["SKIP_INTEGRATION_TESTS"] == nil))
+    @Test(
+        "Connect to Music Assistant server",
+        .enabled(if: ProcessInfo.processInfo.environment["SKIP_INTEGRATION_TESTS"] == nil)
+    )
     func connect() async throws {
         let connection = WebSocketConnection(host: testHost, port: testPort)
 

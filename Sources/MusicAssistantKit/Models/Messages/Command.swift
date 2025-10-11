@@ -24,7 +24,7 @@ public struct Command: Codable, @unchecked Sendable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(messageId, forKey: .messageId)
         try container.encode(command, forKey: .command)
-        if let args = args {
+        if let args {
             try container.encode(args, forKey: .args)
         }
     }

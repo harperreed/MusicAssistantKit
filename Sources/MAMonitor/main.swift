@@ -1,8 +1,8 @@
 // ABOUTME: CLI tool for monitoring Music Assistant player events in real-time
 // ABOUTME: Usage: ma-monitor [player-id]
 
-import Foundation
 import Combine
+import Foundation
 import MusicAssistantKit
 
 @main
@@ -69,7 +69,8 @@ struct MusicMonitor {
                         print("  Elapsed: ⏱️  \(minutes):\(String(format: "%02d", seconds))")
                     }
                     if let currentItem = event.data["current_item"]?.value as? [String: Any],
-                       let name = currentItem["name"] as? String {
+                       let name = currentItem["name"] as? String
+                    {
                         print("  Now Playing: 🎶 \(name)")
                     }
                     print("─────────────────────────────────────────")
@@ -112,11 +113,11 @@ struct MusicMonitor {
 
     static func stateEmoji(_ state: String) -> String {
         switch state.lowercased() {
-        case "playing": return "▶️"
-        case "paused": return "⏸️"
-        case "idle": return "⏹️"
-        case "off": return "🔴"
-        default: return "❓"
+        case "playing": "▶️"
+        case "paused": "⏸️"
+        case "idle": "⏹️"
+        case "off": "🔴"
+        default: "❓"
         }
     }
 }

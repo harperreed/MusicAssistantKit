@@ -8,18 +8,18 @@ actor WebSocketConnection: WebSocketConnectionProtocol {
     private let port: Int
     private var webSocketTask: URLSessionWebSocketTask?
     private var urlSession: URLSession?
-    public private(set) var state: ConnectionState = .disconnected
+    private(set) var state: ConnectionState = .disconnected
     private var messageHandler: ((MessageEnvelope) async -> Void)?
     private var shouldReconnect: Bool = true
     private var reconnectAttempt: Int = 0
     private let maxReconnectDelay: UInt64 = 60_000_000_000 // 60 seconds in nanoseconds
 
-    public init(host: String, port: Int) {
+    init(host: String, port: Int) {
         self.host = host
         self.port = port
     }
 
-    public func connect() async throws {
+    func connect() async throws {
         guard state.isDisconnected else {
             return
         }
@@ -32,8 +32,8 @@ actor WebSocketConnection: WebSocketConnectionProtocol {
         let session = URLSession(configuration: .default)
         let task = session.webSocketTask(with: url)
 
-        self.urlSession = session
-        self.webSocketTask = task
+        urlSession = session
+        webSocketTask = task
 
         task.resume()
 
@@ -51,11 +51,11 @@ actor WebSocketConnection: WebSocketConnectionProtocol {
         startReceiveLoop()
     }
 
-    public func setMessageHandler(_ handler: @escaping (MessageEnvelope) async -> Void) {
-        self.messageHandler = handler
+    func setMessageHandler(_ handler: @escaping (MessageEnvelope) async -> Void) {
+        messageHandler = handler
     }
 
-    public func send(_ command: Command) async throws {
+    func send(_ command: Command) async throws {
         guard let task = webSocketTask, state.isConnected else {
             throw MusicAssistantError.notConnected
         }
@@ -72,7 +72,7 @@ actor WebSocketConnection: WebSocketConnectionProtocol {
         try await task.send(message)
     }
 
-    public func disconnect() async {
+    func disconnect() async {
         shouldReconnect = false
         reconnectAttempt = 0
         webSocketTask?.cancel(with: .goingAway, reason: nil)
@@ -96,12 +96,12 @@ actor WebSocketConnection: WebSocketConnectionProtocol {
         let message = try await task.receive()
 
         switch message {
-        case .string(let text):
+        case let .string(text):
             guard let data = text.data(using: .utf8) else {
                 throw MusicAssistantError.invalidResponse
             }
             return data
-        case .data(let data):
+        case let .data(data):
             return data
         @unknown default:
             throw MusicAssistantError.invalidResponse

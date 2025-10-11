@@ -10,8 +10,8 @@
 --indent 4
 --indentcase false
 --trimwhitespace always
---insertblanklines enabled
---removeblanklines enabled
+--insert-lines enabled
+--remove-lines enabled
 --allman false
 --wraparguments before-first
 --wrapparameters before-first
@@ -21,7 +21,7 @@
 
 # Rules
 --enable isEmpty
---enable sortedImports
+--enable sortImports
 --enable redundantReturn
 --enable redundantSelf
 --enable redundantType

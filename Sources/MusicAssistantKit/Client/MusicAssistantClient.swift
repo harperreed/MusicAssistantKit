@@ -1,8 +1,8 @@
 // ABOUTME: Main Music Assistant client API providing high-level commands and event streams
 // ABOUTME: Actor-based design ensures thread-safe state management across async operations
 
-import Foundation
 import Combine
+import Foundation
 
 public actor MusicAssistantClient {
     private let connection: any WebSocketConnectionProtocol
@@ -17,11 +17,11 @@ public actor MusicAssistantClient {
     }
 
     public init(host: String, port: Int) {
-        self.connection = WebSocketConnection(host: host, port: port)
+        connection = WebSocketConnection(host: host, port: port)
     }
 
     // Test-only initializer for dependency injection
-    internal init(connection: any WebSocketConnectionProtocol) {
+    init(connection: any WebSocketConnectionProtocol) {
         self.connection = connection
     }
 
@@ -60,11 +60,11 @@ public actor MusicAssistantClient {
 
     private func handleMessage(_ envelope: MessageEnvelope) async {
         switch envelope {
-        case .result(let result):
+        case let .result(result):
             if let continuation = pendingCommands.removeValue(forKey: result.messageId) {
                 continuation.resume(returning: result.result)
             }
-        case .error(let error):
+        case let .error(error):
             if let continuation = pendingCommands.removeValue(forKey: error.messageId) {
                 let maError = MusicAssistantError.serverError(
                     code: error.errorCode,
@@ -73,7 +73,7 @@ public actor MusicAssistantClient {
                 )
                 continuation.resume(throwing: maError)
             }
-        case .event(let event):
+        case let .event(event):
             events.publish(event)
         case .serverInfo, .unknown:
             break
@@ -84,11 +84,10 @@ public actor MusicAssistantClient {
         let messageId = generateMessageId()
 
         // Convert args to [String: AnyCodable] if present
-        let anyCodableArgs: [String: AnyCodable]?
-        if let args = args {
-            anyCodableArgs = args.mapValues { AnyCodable($0) }
+        let anyCodableArgs: [String: AnyCodable]? = if let args {
+            args.mapValues { AnyCodable($0) }
         } else {
-            anyCodableArgs = nil
+            nil
         }
 
         let cmd = Command(messageId: messageId, command: command, args: anyCodableArgs)
@@ -119,7 +118,7 @@ public actor MusicAssistantClient {
     // MARK: - Player Control Commands
 
     public func getPlayers() async throws -> AnyCodable? {
-        return try await sendCommand(command: "players/all")
+        try await sendCommand(command: "players/all")
     }
 
     public func play(playerId: String) async throws {
@@ -146,11 +145,11 @@ public actor MusicAssistantClient {
     // MARK: - Search Commands
 
     public func search(query: String, limit: Int = 25) async throws -> AnyCodable? {
-        return try await sendCommand(
+        try await sendCommand(
             command: "music/search",
             args: [
                 "search_query": query,
-                "limit": limit
+                "limit": limit,
             ]
         )
     }
@@ -158,19 +157,19 @@ public actor MusicAssistantClient {
     // MARK: - Queue Commands
 
     public func getQueue(queueId: String) async throws -> AnyCodable? {
-        return try await sendCommand(
+        try await sendCommand(
             command: "player_queues/get",
             args: ["queue_id": queueId]
         )
     }
 
     public func getQueueItems(queueId: String, limit: Int = 50, offset: Int = 0) async throws -> AnyCodable? {
-        return try await sendCommand(
+        try await sendCommand(
             command: "player_queues/items",
             args: [
                 "queue_id": queueId,
                 "limit": limit,
-                "offset": offset
+                "offset": offset,
             ]
         )
     }
@@ -181,13 +180,13 @@ public actor MusicAssistantClient {
         option: String = "play",
         radioMode: Bool = false
     ) async throws -> AnyCodable? {
-        return try await sendCommand(
+        try await sendCommand(
             command: "player_queues/play_media",
             args: [
                 "queue_id": queueId,
                 "uri": uri,
                 "option": option,
-                "radio_mode": radioMode
+                "radio_mode": radioMode,
             ]
         )
     }
@@ -204,7 +203,7 @@ public actor MusicAssistantClient {
             command: "player_queues/shuffle",
             args: [
                 "queue_id": queueId,
-                "shuffle": enabled
+                "shuffle": enabled,
             ]
         )
     }
@@ -214,7 +213,7 @@ public actor MusicAssistantClient {
             command: "player_queues/repeat",
             args: [
                 "queue_id": queueId,
-                "repeat_mode": mode
+                "repeat_mode": mode,
             ]
         )
     }

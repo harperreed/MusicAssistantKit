@@ -2,8 +2,8 @@
 // ABOUTME: Tests state machine logic without network dependencies
 
 import Foundation
-import Testing
 @testable import MusicAssistantKit
+import Testing
 
 @Suite("ConnectionState Unit Tests")
 struct ConnectionStateTests {

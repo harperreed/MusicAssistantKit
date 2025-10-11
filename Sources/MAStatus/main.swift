@@ -77,7 +77,8 @@ struct MusicStatus {
 
                     // Now playing info if available
                     if let currentItem = player["current_item"] as? [String: Any],
-                       let itemName = currentItem["name"] as? String {
+                       let itemName = currentItem["name"] as? String
+                    {
                         print("  Now Playing: 🎶 \(itemName)")
 
                         if let artists = currentItem["artists"] as? [[String: Any]] {
@@ -105,11 +106,11 @@ struct MusicStatus {
 
     static func stateEmoji(_ state: String) -> String {
         switch state.lowercased() {
-        case "playing": return "▶️"
-        case "paused": return "⏸️"
-        case "idle": return "⏹️"
-        case "off": return "🔴"
-        default: return "❓"
+        case "playing": "▶️"
+        case "paused": "⏸️"
+        case "idle": "⏹️"
+        case "off": "🔴"
+        default: "❓"
         }
     }
 }

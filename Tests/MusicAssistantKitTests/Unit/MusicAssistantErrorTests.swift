@@ -2,8 +2,8 @@
 // ABOUTME: Validates error messages and localized descriptions for all error cases
 
 import Foundation
-import Testing
 @testable import MusicAssistantKit
+import Testing
 
 @Suite("MusicAssistantError Unit Tests")
 struct MusicAssistantErrorTests {

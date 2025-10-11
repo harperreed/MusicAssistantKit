@@ -2,8 +2,8 @@
 // ABOUTME: Tests command methods, message handling, timeouts, and error scenarios
 
 import Foundation
-import Testing
 @testable import MusicAssistantKit
+import Testing
 
 @Suite("MusicAssistantClient Unit Tests")
 struct MusicAssistantClientTests {
@@ -413,7 +413,7 @@ struct MusicAssistantClientTests {
             _ = try await task.value
             Issue.record("Expected error to be thrown")
         } catch let error as MusicAssistantError {
-            if case .serverError(let code, let message, _) = error {
+            if case let .serverError(code, message, _) = error {
                 #expect(code == 500)
                 #expect(message == "Test error")
             } else {
