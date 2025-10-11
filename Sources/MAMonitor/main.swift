@@ -46,7 +46,7 @@ struct MusicMonitor {
 
             printMonitoringInfo(filterPlayerId: args.filterPlayerId)
 
-            subscribeToEvents(client: client, filterPlayerId: args.filterPlayerId, cancellables: &cancellables)
+            await subscribeToEvents(client: client, filterPlayerId: args.filterPlayerId, cancellables: &cancellables)
 
             try await Task.sleep(nanoseconds: 3_600_000_000_000) // 1 hour max
         } catch {
@@ -69,43 +69,39 @@ struct MusicMonitor {
         client: MusicAssistantClient,
         filterPlayerId: String?,
         cancellables: inout Set<AnyCancellable>
-    ) {
-        subscribeToPlayerUpdates(client: client, filterPlayerId: filterPlayerId, cancellables: &cancellables)
-        subscribeToQueueUpdates(client: client, filterPlayerId: filterPlayerId, cancellables: &cancellables)
+    ) async {
+        await subscribeToPlayerUpdates(client: client, filterPlayerId: filterPlayerId, cancellables: &cancellables)
+        await subscribeToQueueUpdates(client: client, filterPlayerId: filterPlayerId, cancellables: &cancellables)
     }
 
     static func subscribeToPlayerUpdates(
         client: MusicAssistantClient,
         filterPlayerId: String?,
         cancellables: inout Set<AnyCancellable>
-    ) {
-        Task {
-            await client.events.playerUpdates
-                .sink { event in
-                    if let filter = filterPlayerId, event.playerId != filter {
-                        return
-                    }
-                    handlePlayerUpdate(event)
+    ) async {
+        await client.events.playerUpdates
+            .sink { event in
+                if let filter = filterPlayerId, event.playerId != filter {
+                    return
                 }
-                .store(in: &cancellables)
-        }
+                handlePlayerUpdate(event)
+            }
+            .store(in: &cancellables)
     }
 
     static func subscribeToQueueUpdates(
         client: MusicAssistantClient,
         filterPlayerId: String?,
         cancellables: inout Set<AnyCancellable>
-    ) {
-        Task {
-            await client.events.queueUpdates
-                .sink { event in
-                    if let filter = filterPlayerId, event.queueId != filter {
-                        return
-                    }
-                    handleQueueUpdate(event)
+    ) async {
+        await client.events.queueUpdates
+            .sink { event in
+                if let filter = filterPlayerId, event.queueId != filter {
+                    return
                 }
-                .store(in: &cancellables)
-        }
+                handleQueueUpdate(event)
+            }
+            .store(in: &cancellables)
     }
 
     static func handlePlayerUpdate(_ event: PlayerUpdateEvent) {
