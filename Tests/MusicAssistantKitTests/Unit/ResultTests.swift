@@ -17,8 +17,8 @@ struct ResultTests {
         """
 
         let decoder = JSONDecoder()
-        let data = try #require(json.data(using: .utf8))
-        let result = try decoder.decode(Result.self, from: data)
+        let jsonData = try #require(json.data(using: .utf8))
+        let result = try decoder.decode(Result.self, from: jsonData)
 
         #expect(result.messageId == 123)
         #expect(result.result?.value as? String == "success")
@@ -33,8 +33,8 @@ struct ResultTests {
         """
 
         let decoder = JSONDecoder()
-        let data = try #require(json.data(using: .utf8))
-        let result = try decoder.decode(Result.self, from: data)
+        let jsonData = try #require(json.data(using: .utf8))
+        let result = try decoder.decode(Result.self, from: jsonData)
 
         #expect(result.messageId == 456)
         #expect(result.result == nil)
@@ -54,8 +54,8 @@ struct ResultTests {
         """
 
         let decoder = JSONDecoder()
-        let data = try #require(json.data(using: .utf8))
-        let result = try decoder.decode(Result.self, from: data)
+        let jsonData = try #require(json.data(using: .utf8))
+        let result = try decoder.decode(Result.self, from: jsonData)
 
         #expect(result.messageId == 789)
 
@@ -78,8 +78,8 @@ struct ResultTests {
         """
 
         let decoder = JSONDecoder()
-        let data = try #require(json.data(using: .utf8))
-        let result = try decoder.decode(Result.self, from: data)
+        let jsonData = try #require(json.data(using: .utf8))
+        let result = try decoder.decode(Result.self, from: jsonData)
 
         #expect(result.messageId == 999)
 
@@ -98,8 +98,8 @@ struct ResultTests {
         """
 
         let decoder = JSONDecoder()
-        let data = try #require(json.data(using: .utf8))
-        let result = try decoder.decode(Result.self, from: data)
+        let jsonData = try #require(json.data(using: .utf8))
+        let result = try decoder.decode(Result.self, from: jsonData)
 
         #expect(result.messageId == 111)
         #expect(result.result?.value as? Bool == true)
@@ -115,8 +115,8 @@ struct ResultTests {
         """
 
         let decoder = JSONDecoder()
-        let data = try #require(json.data(using: .utf8))
-        let result = try decoder.decode(Result.self, from: data)
+        let jsonData = try #require(json.data(using: .utf8))
+        let result = try decoder.decode(Result.self, from: jsonData)
 
         #expect(result.messageId == 222)
         #expect(result.result?.value as? Int == 42)
@@ -132,8 +132,8 @@ struct ResultTests {
         """
 
         let decoder = JSONDecoder()
-        let data = try #require(json.data(using: .utf8))
-        let result = try decoder.decode(Result.self, from: data)
+        let jsonData = try #require(json.data(using: .utf8))
+        let result = try decoder.decode(Result.self, from: jsonData)
 
         #expect(result.messageId == 333)
         #expect(result.result?.value as? Double == 3.14)
@@ -149,8 +149,8 @@ struct ResultTests {
         """
 
         let decoder = JSONDecoder()
-        let data = try #require(json.data(using: .utf8))
-        let result = try decoder.decode(Result.self, from: data)
+        let jsonData = try #require(json.data(using: .utf8))
+        let result = try decoder.decode(Result.self, from: jsonData)
 
         #expect(result.messageId == 444)
         // When result is null, it's decoded as nil, not AnyCodable(NSNull)
