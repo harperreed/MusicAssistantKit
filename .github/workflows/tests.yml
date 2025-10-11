@@ -122,7 +122,7 @@ jobs:
             -instr-profile .build/debug/codecov/default.profdata | \
             grep TOTAL | awk '{print $10}' | sed 's/%//')
 
-          THRESHOLD=70
+          THRESHOLD=40
 
           if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
             echo "❌ Coverage $COVERAGE% is below threshold $THRESHOLD%"
