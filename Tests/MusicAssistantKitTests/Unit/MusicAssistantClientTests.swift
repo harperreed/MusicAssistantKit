@@ -387,6 +387,73 @@ struct MusicAssistantClientTests {
         try await task.value
     }
 
+    @Test("seek command includes queue_id and position")
+    func seek() async throws {
+        let mock = MockWebSocketConnection()
+        let client = MusicAssistantClient(connection: mock)
+
+        try await client.connect()
+
+        let task = Task {
+            try await client.seek(queueId: "test-queue", position: 42.5)
+        }
+
+        try await Task.sleep(nanoseconds: 10_000_000)
+        let command = await mock.getLastCommand()
+        #expect(command?.command == "player_queues/seek")
+        #expect(command?.args?["queue_id"]?.value as? String == "test-queue")
+        #expect(command?.args?["position"]?.value as? Double == 42.5)
+
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: nil)
+        try await task.value
+    }
+
+    // MARK: - Player Grouping Tests
+
+    @Test("group command includes player_id and target_player")
+    func group() async throws {
+        let mock = MockWebSocketConnection()
+        let client = MusicAssistantClient(connection: mock)
+
+        try await client.connect()
+
+        let task = Task {
+            try await client.group(playerId: "player-1", targetPlayer: "player-2")
+        }
+
+        try await Task.sleep(nanoseconds: 10_000_000)
+        let command = await mock.getLastCommand()
+        #expect(command?.command == "players/cmd/group")
+        #expect(command?.args?["player_id"]?.value as? String == "player-1")
+        #expect(command?.args?["target_player"]?.value as? String == "player-2")
+
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: nil)
+        try await task.value
+    }
+
+    @Test("ungroup command includes player_id")
+    func ungroup() async throws {
+        let mock = MockWebSocketConnection()
+        let client = MusicAssistantClient(connection: mock)
+
+        try await client.connect()
+
+        let task = Task {
+            try await client.ungroup(playerId: "player-1")
+        }
+
+        try await Task.sleep(nanoseconds: 10_000_000)
+        let command = await mock.getLastCommand()
+        #expect(command?.command == "players/cmd/ungroup")
+        #expect(command?.args?["player_id"]?.value as? String == "player-1")
+
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: nil)
+        try await task.value
+    }
+
     // MARK: - Message Handling Tests
 
     @Test("Client handles result messages")

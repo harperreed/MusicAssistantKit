@@ -142,6 +142,23 @@ public actor MusicAssistantClient {
         )
     }
 
+    public func group(playerId: String, targetPlayer: String) async throws {
+        _ = try await sendCommand(
+            command: "players/cmd/group",
+            args: [
+                "player_id": playerId,
+                "target_player": targetPlayer,
+            ]
+        )
+    }
+
+    public func ungroup(playerId: String) async throws {
+        _ = try await sendCommand(
+            command: "players/cmd/ungroup",
+            args: ["player_id": playerId]
+        )
+    }
+
     // MARK: - Search Commands
 
     public func search(query: String, limit: Int = 25) async throws -> AnyCodable? {
@@ -214,6 +231,16 @@ public actor MusicAssistantClient {
             args: [
                 "queue_id": queueId,
                 "repeat_mode": mode,
+            ]
+        )
+    }
+
+    public func seek(queueId: String, position: Double) async throws {
+        _ = try await sendCommand(
+            command: "player_queues/seek",
+            args: [
+                "queue_id": queueId,
+                "position": position,
             ]
         )
     }
