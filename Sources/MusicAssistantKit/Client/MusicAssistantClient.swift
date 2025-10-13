@@ -142,6 +142,40 @@ public actor MusicAssistantClient {
         )
     }
 
+    public func next(playerId: String) async throws {
+        _ = try await sendCommand(
+            command: "players/cmd/next",
+            args: ["player_id": playerId]
+        )
+    }
+
+    public func previous(playerId: String) async throws {
+        _ = try await sendCommand(
+            command: "players/cmd/previous",
+            args: ["player_id": playerId]
+        )
+    }
+
+    public func setVolume(playerId: String, volume: Double) async throws {
+        _ = try await sendCommand(
+            command: "players/cmd/volume_set",
+            args: [
+                "player_id": playerId,
+                "volume_level": volume,
+            ]
+        )
+    }
+
+    public func seek(playerId: String, position: Double) async throws {
+        _ = try await sendCommand(
+            command: "players/cmd/seek",
+            args: [
+                "player_id": playerId,
+                "position": position,
+            ]
+        )
+    }
+
     public func group(playerId: String, targetPlayer: String) async throws {
         _ = try await sendCommand(
             command: "players/cmd/group",
