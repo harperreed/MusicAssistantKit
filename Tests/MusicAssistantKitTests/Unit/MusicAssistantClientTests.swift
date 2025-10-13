@@ -146,6 +146,92 @@ struct MusicAssistantClientTests {
         try await task.value
     }
 
+    @Test("next command includes player_id")
+    func next() async throws {
+        let mock = MockWebSocketConnection()
+        let client = MusicAssistantClient(connection: mock)
+
+        try await client.connect()
+
+        let task = Task {
+            try await client.next(playerId: "test-player")
+        }
+
+        try await Task.sleep(nanoseconds: 10_000_000)
+        let command = await mock.getLastCommand()
+        #expect(command?.command == "players/cmd/next")
+        #expect(command?.args?["player_id"]?.value as? String == "test-player")
+
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: nil)
+        try await task.value
+    }
+
+    @Test("previous command includes player_id")
+    func previous() async throws {
+        let mock = MockWebSocketConnection()
+        let client = MusicAssistantClient(connection: mock)
+
+        try await client.connect()
+
+        let task = Task {
+            try await client.previous(playerId: "test-player")
+        }
+
+        try await Task.sleep(nanoseconds: 10_000_000)
+        let command = await mock.getLastCommand()
+        #expect(command?.command == "players/cmd/previous")
+        #expect(command?.args?["player_id"]?.value as? String == "test-player")
+
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: nil)
+        try await task.value
+    }
+
+    @Test("setVolume command includes player_id and volume_level")
+    func setVolume() async throws {
+        let mock = MockWebSocketConnection()
+        let client = MusicAssistantClient(connection: mock)
+
+        try await client.connect()
+
+        let task = Task {
+            try await client.setVolume(playerId: "test-player", volume: 75.0)
+        }
+
+        try await Task.sleep(nanoseconds: 10_000_000)
+        let command = await mock.getLastCommand()
+        #expect(command?.command == "players/cmd/volume_set")
+        #expect(command?.args?["player_id"]?.value as? String == "test-player")
+        #expect(command?.args?["volume_level"]?.value as? Double == 75.0)
+
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: nil)
+        try await task.value
+    }
+
+    @Test("player seek command includes player_id and position")
+    func playerSeek() async throws {
+        let mock = MockWebSocketConnection()
+        let client = MusicAssistantClient(connection: mock)
+
+        try await client.connect()
+
+        let task = Task {
+            try await client.seek(playerId: "test-player", position: 30.5)
+        }
+
+        try await Task.sleep(nanoseconds: 10_000_000)
+        let command = await mock.getLastCommand()
+        #expect(command?.command == "players/cmd/seek")
+        #expect(command?.args?["player_id"]?.value as? String == "test-player")
+        #expect(command?.args?["position"]?.value as? Double == 30.5)
+
+        let commandMessageId = try #require(command?.messageId)
+        await mock.simulateResult(messageId: commandMessageId, result: nil)
+        try await task.value
+    }
+
     // MARK: - Search Command Tests
 
     @Test("search command with default limit")
