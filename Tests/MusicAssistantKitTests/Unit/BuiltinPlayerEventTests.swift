@@ -1,5 +1,8 @@
-import XCTest
+// ABOUTME: Unit tests for BuiltinPlayerEvent decoding from server broadcasts
+// ABOUTME: Validates command parsing, media URL extraction, and queue ID handling
+
 @testable import MusicAssistantKit
+import XCTest
 
 final class BuiltinPlayerEventTests: XCTestCase {
     func testDecodePlayMediaEvent() throws {
@@ -10,9 +13,10 @@ final class BuiltinPlayerEventTests: XCTestCase {
             "queue_id": "queue456",
             "queue_item_id": "item789"
         }
-        """.data(using: .utf8)!
+        """
+        let jsonData = try XCTUnwrap(json.data(using: .utf8))
 
-        let event = try JSONDecoder().decode(BuiltinPlayerEvent.self, from: json)
+        let event = try JSONDecoder().decode(BuiltinPlayerEvent.self, from: jsonData)
 
         XCTAssertEqual(event.command, .playMedia)
         XCTAssertEqual(event.mediaUrl, "flow/session123/queue456/item789.mp3")
@@ -25,9 +29,10 @@ final class BuiltinPlayerEventTests: XCTestCase {
         {
             "command": "STOP"
         }
-        """.data(using: .utf8)!
+        """
+        let jsonData = try XCTUnwrap(json.data(using: .utf8))
 
-        let event = try JSONDecoder().decode(BuiltinPlayerEvent.self, from: json)
+        let event = try JSONDecoder().decode(BuiltinPlayerEvent.self, from: jsonData)
 
         XCTAssertEqual(event.command, .stop)
         XCTAssertNil(event.mediaUrl)
@@ -39,9 +44,10 @@ final class BuiltinPlayerEventTests: XCTestCase {
             "command": "SOME_NEW_COMMAND",
             "media_url": "test.mp3"
         }
-        """.data(using: .utf8)!
+        """
+        let jsonData = try XCTUnwrap(json.data(using: .utf8))
 
-        let event = try JSONDecoder().decode(BuiltinPlayerEvent.self, from: json)
+        let event = try JSONDecoder().decode(BuiltinPlayerEvent.self, from: jsonData)
 
         XCTAssertEqual(event.command, .unknown)
         XCTAssertEqual(event.mediaUrl, "test.mp3")
