@@ -34,9 +34,14 @@ let package = Package(
             name: "ma-api-discovery",
             targets: ["MAAPIDiscovery"]
         ),
+        .executable(
+            name: "ma-stream",
+            targets: ["MAStream"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-testing.git", from: "0.10.0"),
+        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.2.0"),
     ],
     targets: [
         .target(
@@ -62,12 +67,23 @@ let package = Package(
             name: "MAAPIDiscovery",
             dependencies: ["MusicAssistantKit"]
         ),
+        .executableTarget(
+            name: "MAStream",
+            dependencies: [
+                "MusicAssistantKit",
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+            ]
+        ),
         .testTarget(
             name: "MusicAssistantKitTests",
             dependencies: [
                 "MusicAssistantKit",
                 .product(name: "Testing", package: "swift-testing"),
             ]
+        ),
+        .testTarget(
+            name: "MAStreamTests",
+            dependencies: ["MAStream"]
         ),
     ]
 )
