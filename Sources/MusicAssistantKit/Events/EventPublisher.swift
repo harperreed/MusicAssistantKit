@@ -10,6 +10,7 @@ import Foundation
 public final class EventPublisher: @unchecked Sendable {
     public let playerUpdates = PassthroughSubject<PlayerUpdateEvent, Never>()
     public let queueUpdates = PassthroughSubject<QueueUpdateEvent, Never>()
+    public let builtinPlayerEvents = PassthroughSubject<BuiltinPlayerEvent, Never>()
     public let rawEvents = PassthroughSubject<Event, Never>()
 
     public init() {}
@@ -38,6 +39,14 @@ public final class EventPublisher: @unchecked Sendable {
                 let anyCodableDict = dataDict.mapValues { AnyCodable($0) }
                 let queueEvent = QueueUpdateEvent(queueId: objectId, data: anyCodableDict)
                 queueUpdates.send(queueEvent)
+            }
+
+        case "BUILTIN_PLAYER":
+            if let dataWrapper = event.data,
+               let dataDict = dataWrapper.value as? [String: Any],
+               let jsonData = try? JSONSerialization.data(withJSONObject: dataDict),
+               let builtinEvent = try? JSONDecoder().decode(BuiltinPlayerEvent.self, from: jsonData) {
+                builtinPlayerEvents.send(builtinEvent)
             }
 
         default:
