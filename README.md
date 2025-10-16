@@ -130,6 +130,28 @@ client.events.builtinPlayerEvents.sink { event in
 
 See [Streaming Audio URLs Documentation](docs/streaming-audio-urls.md) for complete usage guide.
 
+## CLI Tools
+
+### ma-stream
+
+Monitor BUILTIN_PLAYER events and display streaming URLs in real-time:
+
+```bash
+# Default monitoring with URL testing
+ma-stream
+
+# Custom host/port
+ma-stream --host 192.168.23.196 --port 8095
+
+# JSON output for scripting
+ma-stream --json
+
+# Fast mode without URL testing
+ma-stream --no-test
+```
+
+Perfect for debugging streaming issues, extracting URLs, or integrating with other tools. See [docs/cli/ma-stream.md](docs/cli/ma-stream.md) for complete documentation.
+
 ## Error Handling
 
 ```swift
