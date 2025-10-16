@@ -1,9 +1,9 @@
 // ABOUTME: Integration tests for streaming audio URLs against live Music Assistant server
 // ABOUTME: Tests BUILTIN_PLAYER event capture and stream URL accessibility
 
-import XCTest
 import Combine
 @testable import MusicAssistantKit
+import XCTest
 
 final class StreamingIntegrationTests: XCTestCase {
     var cancellables = Set<AnyCancellable>()
@@ -20,7 +20,10 @@ final class StreamingIntegrationTests: XCTestCase {
         }
 
         let host = ProcessInfo.processInfo.environment["MA_TEST_HOST"] ?? "localhost"
-        let port = Int(ProcessInfo.processInfo.environment["MA_TEST_PORT"] ?? "8095")!
+        guard let port = Int(ProcessInfo.processInfo.environment["MA_TEST_PORT"] ?? "8095") else {
+            XCTFail("Invalid port number")
+            return
+        }
 
         let client = MusicAssistantClient(host: host, port: port)
         try await client.connect()
@@ -65,6 +68,7 @@ final class StreamingIntegrationTests: XCTestCase {
         await client.disconnect()
     }
 
+    // swiftlint:disable:next function_body_length
     func testBuiltinPlayerEventSubscription() async throws {
         // Skip if integration tests are disabled
         if ProcessInfo.processInfo.environment["SKIP_INTEGRATION_TESTS"] != nil {
@@ -72,7 +76,10 @@ final class StreamingIntegrationTests: XCTestCase {
         }
 
         let host = ProcessInfo.processInfo.environment["MA_TEST_HOST"] ?? "localhost"
-        let port = Int(ProcessInfo.processInfo.environment["MA_TEST_PORT"] ?? "8095")!
+        guard let port = Int(ProcessInfo.processInfo.environment["MA_TEST_PORT"] ?? "8095") else {
+            XCTFail("Invalid port number")
+            return
+        }
 
         let client = MusicAssistantClient(host: host, port: port)
 
@@ -81,23 +88,27 @@ final class StreamingIntegrationTests: XCTestCase {
         let expectation = expectation(description: "Receive built-in player event")
 
         let events = await client.events
-        events.builtinPlayerEvents.sink { event in
-            print("Received BUILTIN_PLAYER event: \(event.command)")
-            if let mediaUrl = event.mediaUrl {
-                print("  Media URL: \(mediaUrl)")
+        events.builtinPlayerEvents
+            .sink { event in
+                print("Received BUILTIN_PLAYER event: \(event.command)")
+                if let mediaUrl = event.mediaUrl {
+                    print("  Media URL: \(mediaUrl)")
+                }
+                if receivedEvent == nil {
+                    receivedEvent = event
+                    expectation.fulfill()
+                }
             }
-            if receivedEvent == nil {
-                receivedEvent = event
-                expectation.fulfill()
-            }
-        }.store(in: &cancellables)
+            .store(in: &cancellables)
 
         try await client.connect()
 
         // Subscribe to raw events to watch for BUILTIN_PLAYER
-        events.rawEvents.sink { event in
-            print("Raw event: \(event.event)")
-        }.store(in: &cancellables)
+        events.rawEvents
+            .sink { event in
+                print("Raw event: \(event.event)")
+            }
+            .store(in: &cancellables)
 
         // Note: This test requires manual playback to trigger events
         // Wait for any BUILTIN_PLAYER event from the server

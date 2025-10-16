@@ -21,6 +21,7 @@ struct APIDiscovery {
         await runDiscovery(config)
     }
 
+    // swiftlint:disable:next function_body_length
     static func runDiscovery(_ config: Config) async {
         let client = MusicAssistantClient(host: config.host, port: config.port)
 
@@ -113,7 +114,6 @@ struct APIDiscovery {
 
             await client.disconnect()
             print("\n✅ Discovery complete!")
-
         } catch {
             print("❌ Error: \(error)")
             exit(1)
@@ -141,7 +141,8 @@ struct APIDiscovery {
             let fullKey = prefix.isEmpty ? key : "\(prefix).\(key)"
 
             // Check if this looks like a URL field
-            if key.lowercased().contains("url") || key.lowercased().contains("uri") || key.lowercased().contains("stream") {
+            if key.lowercased().contains("url") || key.lowercased().contains("uri") || key.lowercased()
+                .contains("stream") {
                 print("  🔗 Found URL field: \(fullKey)")
                 print("     Type: \(type(of: value))")
                 print("     Value: \(value)")
@@ -161,7 +162,7 @@ struct APIDiscovery {
             }
         }
 
-        if !foundURLs && prefix.isEmpty {
+        if !foundURLs, prefix.isEmpty {
             print("  ℹ️  No obvious URL/URI/stream fields found at top level")
         }
     }
@@ -219,7 +220,7 @@ struct APIDiscovery {
         do {
             let (_, response) = try await URLSession.shared.data(for: request)
             if let httpResponse = response as? HTTPURLResponse {
-                return (200...299).contains(httpResponse.statusCode)
+                return (200 ... 299).contains(httpResponse.statusCode)
             }
             return false
         } catch {

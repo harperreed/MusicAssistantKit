@@ -1,5 +1,6 @@
 // ABOUTME: Main Music Assistant client API providing high-level commands and event streams
 // ABOUTME: Actor-based design ensures thread-safe state management across async operations
+// swiftlint:disable file_length type_body_length
 
 import Combine
 import Foundation
@@ -27,8 +28,8 @@ public actor MusicAssistantClient {
 
     // Test-only initializer for dependency injection
     init(connection: any WebSocketConnectionProtocol) {
-        self.host = nil
-        self.port = nil
+        host = nil
+        port = nil
         self.connection = connection
     }
 
@@ -301,10 +302,13 @@ public actor MusicAssistantClient {
         }
 
         // Fall back to constructing from host/port
-        guard let host = host, let port = port else {
+        guard let host, let port else {
             throw MusicAssistantError.notConnected
         }
-        return URL(string: "http://\(host):\(port)")!
+        guard let url = URL(string: "http://\(host):\(port)") else {
+            throw MusicAssistantError.invalidURL("http://\(host):\(port)")
+        }
+        return url
     }
 
     /// Construct full stream URL from media path received in events
@@ -348,7 +352,8 @@ public actor MusicAssistantClient {
     ///   - itemId: Track item ID
     ///   - provider: Provider instance (e.g., "library", "spotify")
     /// - Returns: StreamURL for preview audio
-    /// - Throws: MusicAssistantError.notConnected if not connected to server, or StreamURLError if URL construction fails
+    /// - Throws: MusicAssistantError.notConnected if not connected to server, or StreamURLError if URL construction
+    /// fails
     public func constructPreviewURL(itemId: String, provider: String) throws -> StreamURL {
         let baseURL = try getBaseURL()
         return try StreamURL.preview(baseURL: baseURL, itemId: itemId, provider: provider)
@@ -360,7 +365,8 @@ public actor MusicAssistantClient {
     ///   - format: Audio format
     ///   - preAnnounce: Include pre-announce alert
     /// - Returns: StreamURL for announcement
-    /// - Throws: MusicAssistantError.notConnected if not connected to server, or StreamURLError if URL construction fails
+    /// - Throws: MusicAssistantError.notConnected if not connected to server, or StreamURLError if URL construction
+    /// fails
     public func constructAnnouncementURL(
         playerId: String,
         format: StreamFormat,

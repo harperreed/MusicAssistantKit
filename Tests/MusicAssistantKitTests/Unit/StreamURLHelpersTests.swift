@@ -1,8 +1,8 @@
 // ABOUTME: Tests for stream URL construction helper methods on MusicAssistantClient
 // ABOUTME: Validates URL building for various stream endpoint types
 
-import XCTest
 @testable import MusicAssistantKit
+import XCTest
 
 final class StreamURLHelpersTests: XCTestCase {
     func testGetStreamURLFromMediaPath() async throws {

@@ -1,9 +1,9 @@
 // ABOUTME: Tests for built-in player event publishing through EventPublisher
 // ABOUTME: Verifies BUILTIN_PLAYER events are correctly routed to subscribers
 
-import XCTest
 import Combine
 @testable import MusicAssistantKit
+import XCTest
 
 final class BuiltinPlayerEventPublisherTests: XCTestCase {
     var cancellables = Set<AnyCancellable>()
@@ -22,10 +22,12 @@ final class BuiltinPlayerEventPublisherTests: XCTestCase {
 
         // Access events from within the actor
         let events = await client.events
-        events.builtinPlayerEvents.sink { event in
-            receivedEvent = event
-            expectation.fulfill()
-        }.store(in: &cancellables)
+        events.builtinPlayerEvents
+            .sink { event in
+                receivedEvent = event
+                expectation.fulfill()
+            }
+            .store(in: &cancellables)
 
         // Connect to initialize the client
         try await client.connect()
@@ -38,7 +40,7 @@ final class BuiltinPlayerEventPublisherTests: XCTestCase {
                 "command": "PLAY_MEDIA",
                 "media_url": "flow/session123/queue456/item789.mp3",
                 "queue_id": "queue456",
-                "queue_item_id": "item789"
+                "queue_item_id": "item789",
             ])
         )
         await mockConnection.simulateEvent(event)
@@ -60,10 +62,12 @@ final class BuiltinPlayerEventPublisherTests: XCTestCase {
         let expectation = expectation(description: "Receive stop event")
 
         let events = await client.events
-        events.builtinPlayerEvents.sink { event in
-            receivedEvent = event
-            expectation.fulfill()
-        }.store(in: &cancellables)
+        events.builtinPlayerEvents
+            .sink { event in
+                receivedEvent = event
+                expectation.fulfill()
+            }
+            .store(in: &cancellables)
 
         try await client.connect()
 
@@ -71,7 +75,7 @@ final class BuiltinPlayerEventPublisherTests: XCTestCase {
             event: "BUILTIN_PLAYER",
             objectId: nil,
             data: AnyCodable([
-                "command": "STOP"
+                "command": "STOP",
             ])
         )
         await mockConnection.simulateEvent(event)
@@ -91,10 +95,12 @@ final class BuiltinPlayerEventPublisherTests: XCTestCase {
         let expectation = expectation(description: "Receive unknown command event")
 
         let events = await client.events
-        events.builtinPlayerEvents.sink { event in
-            receivedEvent = event
-            expectation.fulfill()
-        }.store(in: &cancellables)
+        events.builtinPlayerEvents
+            .sink { event in
+                receivedEvent = event
+                expectation.fulfill()
+            }
+            .store(in: &cancellables)
 
         try await client.connect()
 
@@ -103,7 +109,7 @@ final class BuiltinPlayerEventPublisherTests: XCTestCase {
             objectId: nil,
             data: AnyCodable([
                 "command": "SOME_NEW_COMMAND",
-                "media_url": "test.mp3"
+                "media_url": "test.mp3",
             ])
         )
         await mockConnection.simulateEvent(event)
@@ -122,9 +128,11 @@ final class BuiltinPlayerEventPublisherTests: XCTestCase {
         var receivedEvent: BuiltinPlayerEvent?
 
         let events = await client.events
-        events.builtinPlayerEvents.sink { event in
-            receivedEvent = event
-        }.store(in: &cancellables)
+        events.builtinPlayerEvents
+            .sink { event in
+                receivedEvent = event
+            }
+            .store(in: &cancellables)
 
         try await client.connect()
 
@@ -150,10 +158,12 @@ final class BuiltinPlayerEventPublisherTests: XCTestCase {
         let expectation = expectation(description: "Receive event via helper")
 
         let events = await client.events
-        events.builtinPlayerEvents.sink { event in
-            receivedEvent = event
-            expectation.fulfill()
-        }.store(in: &cancellables)
+        events.builtinPlayerEvents
+            .sink { event in
+                receivedEvent = event
+                expectation.fulfill()
+            }
+            .store(in: &cancellables)
 
         try await client.connect()
 
