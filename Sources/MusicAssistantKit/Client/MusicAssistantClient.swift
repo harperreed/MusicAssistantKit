@@ -10,6 +10,8 @@ public actor MusicAssistantClient {
     private var pendingCommands: [Int: CheckedContinuation<AnyCodable?, Error>] = [:]
     public let events = EventPublisher()
     private var serverInfo: ServerInfo?
+    private let host: String?
+    private let port: Int?
 
     public var isConnected: Bool {
         get async {
@@ -18,11 +20,15 @@ public actor MusicAssistantClient {
     }
 
     public init(host: String, port: Int) {
+        self.host = host
+        self.port = port
         connection = WebSocketConnection(host: host, port: port)
     }
 
     // Test-only initializer for dependency injection
     init(connection: any WebSocketConnectionProtocol) {
+        self.host = nil
+        self.port = nil
         self.connection = connection
     }
 
@@ -286,13 +292,19 @@ public actor MusicAssistantClient {
 
     /// Get base URL for constructing stream URLs
     private func getBaseURL() throws -> URL {
-        guard let info = serverInfo, let baseUrlString = info.baseUrl else {
+        // Try to use base URL from server info first
+        if let info = serverInfo, let baseUrlString = info.baseUrl {
+            guard let baseURL = URL(string: baseUrlString) else {
+                throw MusicAssistantError.invalidURL(baseUrlString)
+            }
+            return baseURL
+        }
+
+        // Fall back to constructing from host/port
+        guard let host = host, let port = port else {
             throw MusicAssistantError.notConnected
         }
-        guard let baseURL = URL(string: baseUrlString) else {
-            throw MusicAssistantError.invalidURL(baseUrlString)
-        }
-        return baseURL
+        return URL(string: "http://\(host):\(port)")!
     }
 
     /// Construct full stream URL from media path received in events
