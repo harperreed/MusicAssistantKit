@@ -2,7 +2,7 @@
 // ABOUTME: Validates formatting of stream events and test results
 
 import XCTest
-@testable import MAStream
+@testable import MAStreamLib
 import MusicAssistantKit
 
 final class OutputFormatterTests: XCTestCase {

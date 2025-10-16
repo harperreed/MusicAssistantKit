@@ -2,7 +2,7 @@
 // ABOUTME: Validates HEAD requests, status code handling, and timeout behavior
 
 import XCTest
-@testable import MAStream
+@testable import MAStreamLib
 
 final class URLTesterTests: XCTestCase {
     func testAccessibleURL() async throws {

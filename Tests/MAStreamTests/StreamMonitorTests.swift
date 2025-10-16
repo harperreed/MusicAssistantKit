@@ -3,7 +3,7 @@
 
 import XCTest
 import Combine
-@testable import MAStream
+@testable import MAStreamLib
 @testable import MusicAssistantKit
 @testable import MusicAssistantKitTests
 

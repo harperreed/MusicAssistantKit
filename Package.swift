@@ -67,9 +67,16 @@ let package = Package(
             name: "MAAPIDiscovery",
             dependencies: ["MusicAssistantKit"]
         ),
+        .target(
+            name: "MAStreamLib",
+            dependencies: [
+                "MusicAssistantKit",
+            ]
+        ),
         .executableTarget(
             name: "MAStream",
             dependencies: [
+                "MAStreamLib",
                 "MusicAssistantKit",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ]
@@ -84,7 +91,7 @@ let package = Package(
         .testTarget(
             name: "MAStreamTests",
             dependencies: [
-                "MAStream",
+                "MAStreamLib",
                 "MusicAssistantKitTests",
             ]
         ),
