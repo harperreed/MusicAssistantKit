@@ -8,6 +8,7 @@ A robust, lightweight Swift library for controlling [Music Assistant](https://mu
 - **Hybrid API** - async/await for commands, Combine for event streams
 - **Automatic reconnection** - Exponential backoff (1s to 60s)
 - **Core functionality** - Play control, search, queue management
+- **Streaming audio URLs** - Access streaming endpoints for client-side playback (AVPlayer, etc.)
 - **TDD approach** - Comprehensive test coverage against real server
 
 ## Requirements
@@ -110,6 +111,24 @@ client.events.queueUpdates
     }
     .store(in: &cancellables)
 ```
+
+### Streaming Audio URLs
+
+Access streaming audio URLs for client-side playback with AVPlayer or other audio frameworks:
+
+```swift
+// Subscribe to streaming events
+client.events.builtinPlayerEvents.sink { event in
+    guard event.command == .playMedia,
+          let mediaUrl = event.mediaUrl else { return }
+
+    let streamURL = client.getStreamURL(mediaPath: mediaUrl)
+    let player = AVPlayer(url: streamURL.url)
+    player.play()
+}.store(in: &cancellables)
+```
+
+See [Streaming Audio URLs Documentation](docs/streaming-audio-urls.md) for complete usage guide.
 
 ## Error Handling
 
