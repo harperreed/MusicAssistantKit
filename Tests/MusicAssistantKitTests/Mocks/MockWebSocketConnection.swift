@@ -28,10 +28,15 @@ actor MockWebSocketConnection: WebSocketConnectionProtocol {
             serverId: "mock-server",
             homeassistantAddon: false,
             capabilities: ["test"],
-            baseUrl: nil,
+            baseUrl: "http://localhost:8095",
             onboardDone: true
         )
         state = .connected(serverInfo: serverInfo)
+
+        // Send serverInfo message to the client
+        if let handler = messageHandler {
+            await handler(.serverInfo(serverInfo))
+        }
     }
 
     func disconnect() async {

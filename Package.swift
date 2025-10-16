@@ -30,6 +30,10 @@ let package = Package(
             name: "ma-status",
             targets: ["MAStatus"]
         ),
+        .executable(
+            name: "ma-api-discovery",
+            targets: ["MAAPIDiscovery"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-testing.git", from: "0.10.0"),
@@ -52,6 +56,10 @@ let package = Package(
         ),
         .executableTarget(
             name: "MAStatus",
+            dependencies: ["MusicAssistantKit"]
+        ),
+        .executableTarget(
+            name: "MAAPIDiscovery",
             dependencies: ["MusicAssistantKit"]
         ),
         .testTarget(

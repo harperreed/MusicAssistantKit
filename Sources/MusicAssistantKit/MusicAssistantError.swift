@@ -10,6 +10,7 @@ public enum MusicAssistantError: Error, LocalizedError {
     case serverError(code: Int?, message: String, details: [String: AnyCodable]?)
     case invalidResponse
     case decodingFailed(Error)
+    case invalidURL(String)
 
     public var errorDescription: String? {
         switch self {
@@ -28,6 +29,8 @@ public enum MusicAssistantError: Error, LocalizedError {
             return "Received invalid response from server"
         case let .decodingFailed(error):
             return "Failed to decode response: \(error.localizedDescription)"
+        case let .invalidURL(urlString):
+            return "Invalid URL: \(urlString)"
         }
     }
 }
