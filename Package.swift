@@ -83,7 +83,10 @@ let package = Package(
         ),
         .testTarget(
             name: "MAStreamTests",
-            dependencies: ["MAStream"]
+            dependencies: [
+                "MAStream",
+                "MusicAssistantKitTests",
+            ]
         ),
     ]
 )
