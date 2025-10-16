@@ -3,6 +3,11 @@
 
 import Foundation
 
+public enum StreamURLError: Error, Sendable {
+    case invalidBaseURL(URL)
+    case failedToConstructURL(String)
+}
+
 public struct StreamURL: Sendable {
     public let url: URL
 
@@ -30,22 +35,33 @@ public struct StreamURL: Sendable {
         baseURL: URL,
         itemId: String,
         provider: String
-    ) -> StreamURL {
-        // Item ID must be double URL-encoded
-        let encoded = itemId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? itemId
-        let doubleEncoded = encoded.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? encoded
+    ) throws -> StreamURL {
+        // Item ID must be double URL-encoded for Music Assistant
+        // We manually construct the query string to avoid URLComponents adding a third encoding
 
-        guard var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false) else {
-            fatalError("Invalid base URL provided: \(baseURL)")
+        // Use alphanumerics + unreserved chars for strict encoding
+        // This ensures colons, slashes, etc. get encoded
+        var allowedChars = CharacterSet.alphanumerics
+        allowedChars.insert(charactersIn: "-._~") // RFC 3986 unreserved characters
+
+        guard let encoded = itemId.addingPercentEncoding(withAllowedCharacters: allowedChars),
+              let doubleEncoded = encoded.addingPercentEncoding(withAllowedCharacters: allowedChars) else {
+            throw StreamURLError.failedToConstructURL("preview URL - encoding failed for item_id")
         }
-        components.path += "/preview"
-        components.queryItems = [
-            URLQueryItem(name: "item_id", value: doubleEncoded),
-            URLQueryItem(name: "provider", value: provider),
-        ]
 
-        guard let url = components.url else {
-            fatalError("Failed to construct preview URL from components")
+        // Provider needs single encoding
+        guard let encodedProvider = provider.addingPercentEncoding(withAllowedCharacters: allowedChars) else {
+            throw StreamURLError.failedToConstructURL("preview URL - encoding failed for provider")
+        }
+
+        var urlString = baseURL.absoluteString
+        if !urlString.hasSuffix("/") {
+            urlString += "/"
+        }
+        urlString += "preview?item_id=\(doubleEncoded)&provider=\(encodedProvider)"
+
+        guard let url = URL(string: urlString) else {
+            throw StreamURLError.failedToConstructURL("preview URL from \(baseURL)")
         }
         return StreamURL(url: url)
     }
@@ -61,9 +77,9 @@ public struct StreamURL: Sendable {
         playerId: String,
         format: StreamFormat,
         preAnnounce: Bool = false
-    ) -> StreamURL {
+    ) throws -> StreamURL {
         guard var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false) else {
-            fatalError("Invalid base URL provided: \(baseURL)")
+            throw StreamURLError.invalidBaseURL(baseURL)
         }
         components.path += "/announcement/\(playerId).\(format.rawValue)"
         if preAnnounce {
@@ -71,7 +87,7 @@ public struct StreamURL: Sendable {
         }
 
         guard let url = components.url else {
-            fatalError("Failed to construct announcement URL from components")
+            throw StreamURLError.failedToConstructURL("announcement URL from \(baseURL)")
         }
         return StreamURL(url: url)
     }

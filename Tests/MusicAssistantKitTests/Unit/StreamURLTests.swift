@@ -51,7 +51,7 @@ final class StreamURLTests: XCTestCase {
     }
 
     func testPreviewURL() throws {
-        let url = StreamURL.preview(
+        let url = try StreamURL.preview(
             baseURL: URL(string: "http://192.168.23.196:8095")!,
             itemId: "track123",
             provider: "library"
@@ -63,8 +63,40 @@ final class StreamURLTests: XCTestCase {
         XCTAssertTrue(url.url.absoluteString.contains("provider=library"))
     }
 
+    func testPreviewURLWithSpecialCharacters() throws {
+        // Test with item ID that requires encoding (colon separator)
+        let url = try StreamURL.preview(
+            baseURL: URL(string: "http://192.168.23.196:8095")!,
+            itemId: "spotify:track:123abc",
+            provider: "spotify"
+        )
+
+        // Verify double encoding: ":" becomes "%3A" (first encoding), then "%253A" (second encoding)
+        let urlString = url.url.absoluteString
+        XCTAssertEqual(
+            urlString,
+            "http://192.168.23.196:8095/preview?item_id=spotify%253Atrack%253A123abc&provider=spotify"
+        )
+    }
+
+    func testPreviewURLWithSpaces() throws {
+        // Test with item ID containing spaces
+        let url = try StreamURL.preview(
+            baseURL: URL(string: "http://192.168.23.196:8095")!,
+            itemId: "track with spaces",
+            provider: "library"
+        )
+
+        // Verify double encoding: " " becomes "%20" (first encoding), then "%2520" (second encoding)
+        let urlString = url.url.absoluteString
+        XCTAssertEqual(
+            urlString,
+            "http://192.168.23.196:8095/preview?item_id=track%2520with%2520spaces&provider=library"
+        )
+    }
+
     func testAnnouncementURL() throws {
-        let url = StreamURL.announcement(
+        let url = try StreamURL.announcement(
             baseURL: URL(string: "http://192.168.23.196:8095")!,
             playerId: "player1",
             format: .mp3,
