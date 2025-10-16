@@ -99,4 +99,31 @@ actor MockWebSocketConnection: WebSocketConnectionProtocol {
     func clearCommands() {
         sentCommands.removeAll()
     }
+
+    /// Simulate BUILTIN_PLAYER event with media URL
+    func simulateBuiltinPlayerEvent(
+        command: String,
+        mediaUrl: String? = nil,
+        queueId: String? = nil,
+        queueItemId: String? = nil
+    ) async {
+        var data: [String: Any] = ["command": command]
+        if let mediaUrl = mediaUrl {
+            data["media_url"] = mediaUrl
+        }
+        if let queueId = queueId {
+            data["queue_id"] = queueId
+        }
+        if let queueItemId = queueItemId {
+            data["queue_item_id"] = queueItemId
+        }
+
+        let event = Event(
+            event: "BUILTIN_PLAYER",
+            objectId: nil,
+            data: AnyCodable(data)
+        )
+
+        await simulateEvent(event)
+    }
 }

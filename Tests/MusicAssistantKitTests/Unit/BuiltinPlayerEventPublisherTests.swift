@@ -141,4 +141,36 @@ final class BuiltinPlayerEventPublisherTests: XCTestCase {
 
         XCTAssertNil(receivedEvent, "Non-BUILTIN_PLAYER events should not be published")
     }
+
+    func testMockBuiltinPlayerEventHelper() async throws {
+        let mockConnection = MockWebSocketConnection()
+        let client = MusicAssistantClient(connection: mockConnection)
+
+        var receivedEvent: BuiltinPlayerEvent?
+        let expectation = expectation(description: "Receive event via helper")
+
+        let events = await client.events
+        events.builtinPlayerEvents.sink { event in
+            receivedEvent = event
+            expectation.fulfill()
+        }.store(in: &cancellables)
+
+        try await client.connect()
+
+        // Use the new helper method
+        await mockConnection.simulateBuiltinPlayerEvent(
+            command: "PLAY_MEDIA",
+            mediaUrl: "flow/test/queue/item.mp3",
+            queueId: "queue",
+            queueItemId: "item"
+        )
+
+        await fulfillment(of: [expectation], timeout: 1.0)
+
+        XCTAssertNotNil(receivedEvent)
+        XCTAssertEqual(receivedEvent?.command, .playMedia)
+        XCTAssertEqual(receivedEvent?.mediaUrl, "flow/test/queue/item.mp3")
+        XCTAssertEqual(receivedEvent?.queueId, "queue")
+        XCTAssertEqual(receivedEvent?.queueItemId, "item")
+    }
 }
