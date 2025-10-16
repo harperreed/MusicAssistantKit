@@ -1,11 +1,11 @@
 // ABOUTME: Unit tests for StreamMonitor event subscription and URL extraction
 // ABOUTME: Uses MockWebSocketConnection to simulate BUILTIN_PLAYER events
 
-import XCTest
 import Combine
 @testable import MAStreamLib
 @testable import MusicAssistantKit
 @testable import MusicAssistantKitTests
+import XCTest
 
 final class StreamMonitorTests: XCTestCase {
     func testMonitorReceivesEvents() async throws {
@@ -42,6 +42,8 @@ final class StreamMonitorTests: XCTestCase {
 
         let receivedURL = await task.value
         XCTAssertNotNil(receivedURL)
-        XCTAssertTrue(receivedURL!.contains("flow/session123/queue456/item789.mp3"))
+        if let url = receivedURL {
+            XCTAssertTrue(url.contains("flow/session123/queue456/item789.mp3"))
+        }
     }
 }

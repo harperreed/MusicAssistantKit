@@ -15,17 +15,17 @@ public struct OutputFormatter {
 
     public func formatStreamEvent(_ event: BuiltinPlayerEvent, streamURL: String) -> String {
         if jsonMode {
-            return formatJSON(event: event, streamURL: streamURL)
+            formatJSON(event: event, streamURL: streamURL)
         } else {
-            return formatText(event: event, streamURL: streamURL)
+            formatText(event: event, streamURL: streamURL)
         }
     }
 
     public func formatTestResult(_ result: TestResult) -> String {
         if jsonMode {
-            return formatJSON(result: result)
+            formatJSON(result: result)
         } else {
-            return formatText(result: result)
+            formatText(result: result)
         }
     }
 
@@ -70,9 +70,9 @@ public struct OutputFormatter {
     }
 
     private func formatText(result: TestResult) -> String {
-        if result.isAccessible {
+        if result.isAccessible, let statusCode = result.statusCode {
             let status = color("✓ Accessible", .green)
-            return "  Status: \(status) (\(result.statusCode!) OK)\n"
+            return "  Status: \(status) (\(statusCode) OK)\n"
         } else if let error = result.error {
             let status = color("✗ Error", .red)
             return "  Status: \(status) (\(error.localizedDescription))\n"
@@ -89,7 +89,7 @@ public struct OutputFormatter {
             "stream_url": streamURL,
             "queue_id": event.queueId as Any,
             "queue_item_id": event.queueItemId as Any,
-            "format": extractFormat(from: streamURL) as Any
+            "format": extractFormat(from: streamURL) as Any,
         ]
 
         guard let data = try? JSONSerialization.data(withJSONObject: dict, options: [.prettyPrinted]),
@@ -106,7 +106,7 @@ public struct OutputFormatter {
             "status_code": result.statusCode as Any,
             "response_time": result.responseTime,
             "accessible": result.isAccessible,
-            "error": result.error?.localizedDescription as Any
+            "error": result.error?.localizedDescription as Any,
         ]
 
         guard let data = try? JSONSerialization.data(withJSONObject: dict, options: []),

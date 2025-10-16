@@ -1,9 +1,9 @@
 // ABOUTME: Monitors BUILTIN_PLAYER events and extracts stream URLs
 // ABOUTME: Provides AsyncStream of stream information for consumption
 
+@preconcurrency import Combine
 import Foundation
 import MusicAssistantKit
-@preconcurrency import Combine
 
 public struct StreamInfo: Sendable {
     public let event: BuiltinPlayerEvent
@@ -17,12 +17,12 @@ public actor StreamMonitor {
 
     public init(client: MusicAssistantClient, testURLs: Bool = true, timeout: TimeInterval = 5.0) {
         self.client = client
-        self.urlTester = testURLs ? URLTester(timeout: timeout) : nil
+        urlTester = testURLs ? URLTester(timeout: timeout) : nil
     }
 
-    nonisolated public var streamEvents: AsyncStream<StreamInfo> {
-        let client = self.client
-        let urlTester = self.urlTester
+    public nonisolated var streamEvents: AsyncStream<StreamInfo> {
+        let client = client
+        let urlTester = urlTester
 
         return AsyncStream { continuation in
             Task {
@@ -52,7 +52,12 @@ public actor StreamMonitor {
         }
     }
 
-    private static func handleEvent(_ event: BuiltinPlayerEvent, client: MusicAssistantClient, urlTester: URLTester?, continuation: AsyncStream<StreamInfo>.Continuation) async {
+    private static func handleEvent(
+        _ event: BuiltinPlayerEvent,
+        client: MusicAssistantClient,
+        urlTester: URLTester?,
+        continuation: AsyncStream<StreamInfo>.Continuation
+    ) async {
         guard event.command == .playMedia,
               let mediaUrl = event.mediaUrl else {
             return

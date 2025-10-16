@@ -1,9 +1,9 @@
 // ABOUTME: Unit tests for OutputFormatter ANSI color and JSON output
 // ABOUTME: Validates formatting of stream events and test results
 
-import XCTest
 @testable import MAStreamLib
 import MusicAssistantKit
+import XCTest
 
 final class OutputFormatterTests: XCTestCase {
     func testFormatStreamEvent() {
@@ -15,7 +15,10 @@ final class OutputFormatterTests: XCTestCase {
             queueItemId: "item789"
         )
 
-        let output = formatter.formatStreamEvent(event, streamURL: "http://localhost:8095/flow/session123/queue456/item789.mp3")
+        let output = formatter.formatStreamEvent(
+            event,
+            streamURL: "http://localhost:8095/flow/session123/queue456/item789.mp3"
+        )
 
         XCTAssertTrue(output.contains("PLAY_MEDIA"))
         XCTAssertTrue(output.contains("queue456"))
@@ -26,8 +29,12 @@ final class OutputFormatterTests: XCTestCase {
 
     func testFormatTestResult() {
         let formatter = OutputFormatter(jsonMode: false, colorEnabled: false)
+        guard let url = URL(string: "http://localhost:8095/test.mp3") else {
+            XCTFail("Invalid URL")
+            return
+        }
         let result = TestResult(
-            url: URL(string: "http://localhost:8095/test.mp3")!,
+            url: url,
             statusCode: 200,
             responseTime: 0.123,
             error: nil
@@ -51,7 +58,11 @@ final class OutputFormatterTests: XCTestCase {
         let output = formatter.formatStreamEvent(event, streamURL: "http://localhost:8095/flow/session/queue/item.mp3")
 
         // Should be valid JSON
-        let json = try JSONSerialization.jsonObject(with: output.data(using: .utf8)!) as? [String: Any]
+        guard let data = output.data(using: .utf8) else {
+            XCTFail("Failed to convert output to data")
+            return
+        }
+        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
         XCTAssertNotNil(json)
         XCTAssertEqual(json?["command"] as? String, "PLAY_MEDIA")
         XCTAssertEqual(json?["stream_url"] as? String, "http://localhost:8095/flow/session/queue/item.mp3")
