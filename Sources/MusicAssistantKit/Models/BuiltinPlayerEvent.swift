@@ -16,6 +16,13 @@ public struct BuiltinPlayerEvent: Codable, Sendable {
         case queueItemId = "queue_item_id"
     }
 
+    public init(command: Command, mediaUrl: String?, queueId: String?, queueItemId: String?) {
+        self.command = command
+        self.mediaUrl = mediaUrl
+        self.queueId = queueId
+        self.queueItemId = queueItemId
+    }
+
     public enum Command: String, Codable, Sendable {
         case playMedia = "PLAY_MEDIA"
         case stop = "STOP"
