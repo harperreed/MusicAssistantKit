@@ -6,6 +6,23 @@ import Combine
 import Foundation
 import MusicAssistantKit
 
+public enum MAPlayerError: LocalizedError {
+    case invalidVolume(Int)
+    case connectionFailed(String)
+    case playbackFailed(String)
+
+    public var errorDescription: String? {
+        switch self {
+        case let .invalidVolume(level):
+            "Invalid volume level: \(level). Must be 0-100."
+        case let .connectionFailed(reason):
+            "Connection failed: \(reason)"
+        case let .playbackFailed(reason):
+            "Playback failed: \(reason)"
+        }
+    }
+}
+
 public actor PlayerSession {
     private let client: MusicAssistantClient
     private let playerId: String
@@ -103,5 +120,16 @@ public actor PlayerSession {
         await MainActor.run {
             audioPlayer.pause()
         }
+    }
+
+    public func setVolume(_ level: Int) async throws {
+        guard level >= 0, level <= 100 else {
+            throw MAPlayerError.invalidVolume(level)
+        }
+
+        try await client.setVolume(
+            playerId: playerId,
+            volume: Double(level)
+        )
     }
 }
