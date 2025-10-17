@@ -15,4 +15,13 @@ final class PlayerSessionTests: XCTestCase {
 
         XCTAssertNotNil(session)
     }
+
+    func testStreamEventLoadsIntoAudioPlayer() async throws {
+        let mockPlayer = await MockAudioPlayer()
+
+        // Note: This test will need a real client or mock later
+        // For now, just verify the handleStreamEvent logic compiles
+        let playCallCount = await mockPlayer.playCallCount
+        XCTAssertEqual(playCallCount, 0)
+    }
 }

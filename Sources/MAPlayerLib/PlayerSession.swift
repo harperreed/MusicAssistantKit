@@ -28,11 +28,44 @@ public actor PlayerSession {
         }
 
         try await client.connect()
+        await setupStreamListener()
     }
 
     deinit {
         Task { [client] in
             await client.disconnect()
+        }
+    }
+
+    private func setupStreamListener() async {
+        let events = await client.events
+        let playerId = playerId
+
+        events.builtinPlayerEvents
+            .filter { event in
+                event.queueId?.contains(playerId) ?? false || event.command == .playMedia
+            }
+            .sink { [weak self] event in
+                guard let self else { return }
+                Task {
+                    await self.handleStreamEvent(event)
+                }
+            }
+            .store(in: &cancellables)
+    }
+
+    public func handleStreamEvent(_ event: BuiltinPlayerEvent) async {
+        guard event.command == .playMedia,
+              let mediaUrl = event.mediaUrl else { return }
+
+        do {
+            let streamURL = try await client.getStreamURL(mediaPath: mediaUrl)
+            await MainActor.run {
+                audioPlayer.replaceCurrentItem(with: streamURL.url)
+                audioPlayer.play()
+            }
+        } catch {
+            print("Failed to load stream: \(error)")
         }
     }
 }
