@@ -192,12 +192,12 @@ public actor PlayerSession {
     public func getPlaybackInfo() async throws -> PlaybackInfo {
         // Get all players and find ours
         let playersResponse = try await client.getPlayers()
-        var playerData: [String: AnyCodable]?
+        var playerData: [String: Any]?
 
         if let players = playersResponse?.value as? [[String: Any]] {
             playerData = players.first { player in
                 (player["player_id"] as? String) == playerId
-            } as? [String: AnyCodable]
+            }
         }
 
         // Get queue info
@@ -213,11 +213,11 @@ public actor PlayerSession {
         let duration = await MainActor.run { audioPlayer.duration?.seconds }
 
         return PlaybackInfo(
-            playerState: (playerData?["state"]?.value as? String) ?? "unknown",
-            currentTrack: playerData?["current_item"]?.value as? String,
+            playerState: (playerData?["state"] as? String) ?? "unknown",
+            currentTrack: (playerData?["current_media"] as? [String: Any])?["name"] as? String,
             position: position > 0 ? position : nil,
             duration: duration,
-            volume: playerData?["volume_level"]?.value as? Int,
+            volume: playerData?["volume_level"] as? Int,
             queueSize: queueSize
         )
     }
