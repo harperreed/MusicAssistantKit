@@ -43,7 +43,7 @@ public actor PlayerSession {
 
         events.builtinPlayerEvents
             .filter { event in
-                event.queueId?.contains(playerId) ?? false || event.command == .playMedia
+                (event.queueId?.contains(playerId) ?? false) && event.command == .playMedia
             }
             .sink { [weak self] event in
                 guard let self else { return }
@@ -65,7 +65,9 @@ public actor PlayerSession {
                 audioPlayer.play()
             }
         } catch {
-            print("Failed to load stream: \(error)")
+            // TODO: Replace with proper error handling/logging mechanism
+            // For now, failing silently as there's no error handler to propagate to
+            return
         }
     }
 }
