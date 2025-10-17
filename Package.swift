@@ -81,6 +81,11 @@ let package = Package(
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ]
         ),
+        .target(
+            name: "MAPlayerLib",
+            dependencies: ["MusicAssistantKit"],
+            path: "Sources/MAPlayerLib"
+        ),
         .testTarget(
             name: "MusicAssistantKitTests",
             dependencies: [
@@ -94,6 +99,11 @@ let package = Package(
                 "MAStreamLib",
                 "MusicAssistantKitTests",
             ]
+        ),
+        .testTarget(
+            name: "MAPlayerLibTests",
+            dependencies: ["MAPlayerLib", "MusicAssistantKit"],
+            path: "Tests/MAPlayerLibTests"
         ),
     ]
 )
