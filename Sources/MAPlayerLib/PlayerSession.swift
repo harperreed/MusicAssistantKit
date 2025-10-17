@@ -171,4 +171,12 @@ public actor PlayerSession {
             }
         }
     }
+
+    public func getQueue() async throws -> AnyCodable? {
+        try await client.getQueueItems(queueId: playerId)
+    }
+
+    public func clearQueue() async throws {
+        try await client.clearQueue(queueId: playerId)
+    }
 }
