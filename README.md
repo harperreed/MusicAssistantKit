@@ -152,6 +152,33 @@ ma-stream --no-test
 
 Perfect for debugging streaming issues, extracting URLs, or integrating with other tools. See [docs/cli/ma-stream.md](docs/cli/ma-stream.md) for complete documentation.
 
+### ma-player
+
+Comprehensive Music Assistant audio player CLI with full playback control:
+
+```bash
+# Start playback
+ma-player play --player builtin spotify:track:xyz
+
+# Control playback
+ma-player control --player builtin next
+ma-player control --player builtin pause
+
+# Set volume
+ma-player volume --player builtin 75
+
+# Monitor events
+ma-player monitor --player builtin --json
+
+# Queue management
+ma-player queue --player builtin list
+
+# Check status
+ma-player info --player builtin
+```
+
+See [docs/cli/ma-player.md](docs/cli/ma-player.md) for complete usage guide.
+
 ## Error Handling
 
 ```swift
