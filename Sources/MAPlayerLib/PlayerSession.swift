@@ -70,4 +70,11 @@ public actor PlayerSession {
             return
         }
     }
+
+    public func startPlayback(uri: String) async throws {
+        _ = try await client.playMedia(
+            queueId: playerId,
+            uri: uri
+        )
+    }
 }

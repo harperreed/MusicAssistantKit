@@ -38,6 +38,10 @@ let package = Package(
             name: "ma-stream",
             targets: ["MAStream"]
         ),
+        .executable(
+            name: "ma-player",
+            targets: ["MAPlayer"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-testing.git", from: "0.10.0"),
@@ -85,6 +89,15 @@ let package = Package(
             name: "MAPlayerLib",
             dependencies: ["MusicAssistantKit"],
             path: "Sources/MAPlayerLib"
+        ),
+        .executableTarget(
+            name: "MAPlayer",
+            dependencies: [
+                "MAPlayerLib",
+                "MusicAssistantKit",
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+            ],
+            path: "Sources/MAPlayer"
         ),
         .testTarget(
             name: "MusicAssistantKitTests",
