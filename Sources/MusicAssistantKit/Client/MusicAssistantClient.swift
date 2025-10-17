@@ -1,5 +1,6 @@
 // ABOUTME: Main Music Assistant client API providing high-level commands and event streams
 // ABOUTME: Actor-based design ensures thread-safe state management across async operations
+// swiftlint:disable file_length type_body_length
 
 import Combine
 import Foundation
@@ -9,6 +10,9 @@ public actor MusicAssistantClient {
     private var nextMessageId: Int = 1
     private var pendingCommands: [Int: CheckedContinuation<AnyCodable?, Error>] = [:]
     public let events = EventPublisher()
+    private var serverInfo: ServerInfo?
+    private let host: String?
+    private let port: Int?
 
     public var isConnected: Bool {
         get async {
@@ -17,11 +21,15 @@ public actor MusicAssistantClient {
     }
 
     public init(host: String, port: Int) {
+        self.host = host
+        self.port = port
         connection = WebSocketConnection(host: host, port: port)
     }
 
     // Test-only initializer for dependency injection
     init(connection: any WebSocketConnectionProtocol) {
+        host = nil
+        port = nil
         self.connection = connection
     }
 
@@ -75,7 +83,9 @@ public actor MusicAssistantClient {
             }
         case let .event(event):
             events.publish(event)
-        case .serverInfo, .unknown:
+        case let .serverInfo(info):
+            serverInfo = info
+        case .unknown:
             break
         }
     }
@@ -276,6 +286,119 @@ public actor MusicAssistantClient {
                 "queue_id": queueId,
                 "position": position,
             ]
+        )
+    }
+
+    // MARK: - Stream URL Construction
+
+    /// Get base URL for constructing stream URLs
+    private func getBaseURL() throws -> URL {
+        // Try to use base URL from server info first
+        if let info = serverInfo, let baseUrlString = info.baseUrl {
+            guard let baseURL = URL(string: baseUrlString) else {
+                throw MusicAssistantError.invalidURL(baseUrlString)
+            }
+            return baseURL
+        }
+
+        // Fall back to constructing from host/port
+        guard let host, let port else {
+            throw MusicAssistantError.notConnected
+        }
+        guard let url = URL(string: "http://\(host):\(port)") else {
+            throw MusicAssistantError.invalidURL("http://\(host):\(port)")
+        }
+        return url
+    }
+
+    /// Construct full stream URL from media path received in events
+    /// - Parameter mediaPath: Media path from BUILTIN_PLAYER event (e.g., "flow/session/queue/item.mp3")
+    /// - Returns: Complete StreamURL ready for playback
+    /// - Throws: MusicAssistantError.notConnected if not connected to server
+    public func getStreamURL(mediaPath: String) throws -> StreamURL {
+        let baseURL = try getBaseURL()
+        return StreamURL(baseURL: baseURL, mediaPath: mediaPath)
+    }
+
+    /// Construct queue stream URL for specific queue item
+    /// - Parameters:
+    ///   - sessionId: Active session ID
+    ///   - queueId: Queue ID
+    ///   - queueItemId: Queue item ID
+    ///   - format: Audio format (mp3, flac, pcm)
+    ///   - flowMode: true for gapless flow, false for single item
+    /// - Returns: StreamURL for the queue item
+    /// - Throws: MusicAssistantError.notConnected if not connected to server
+    public func constructQueueStreamURL(
+        sessionId: String,
+        queueId: String,
+        queueItemId: String,
+        format: StreamFormat,
+        flowMode: Bool = true
+    ) throws -> StreamURL {
+        let baseURL = try getBaseURL()
+        return StreamURL.queueStream(
+            baseURL: baseURL,
+            sessionId: sessionId,
+            queueId: queueId,
+            queueItemId: queueItemId,
+            format: format,
+            flowMode: flowMode
+        )
+    }
+
+    /// Construct preview/clip URL for track
+    /// - Parameters:
+    ///   - itemId: Track item ID
+    ///   - provider: Provider instance (e.g., "library", "spotify")
+    /// - Returns: StreamURL for preview audio
+    /// - Throws: MusicAssistantError.notConnected if not connected to server, or StreamURLError if URL construction
+    /// fails
+    public func constructPreviewURL(itemId: String, provider: String) throws -> StreamURL {
+        let baseURL = try getBaseURL()
+        return try StreamURL.preview(baseURL: baseURL, itemId: itemId, provider: provider)
+    }
+
+    /// Construct announcement URL
+    /// - Parameters:
+    ///   - playerId: Player ID
+    ///   - format: Audio format
+    ///   - preAnnounce: Include pre-announce alert
+    /// - Returns: StreamURL for announcement
+    /// - Throws: MusicAssistantError.notConnected if not connected to server, or StreamURLError if URL construction
+    /// fails
+    public func constructAnnouncementURL(
+        playerId: String,
+        format: StreamFormat,
+        preAnnounce: Bool = false
+    ) throws -> StreamURL {
+        let baseURL = try getBaseURL()
+        return try StreamURL.announcement(
+            baseURL: baseURL,
+            playerId: playerId,
+            format: format,
+            preAnnounce: preAnnounce
+        )
+    }
+
+    /// Construct plugin source URL
+    /// - Parameters:
+    ///   - pluginSource: Plugin source identifier
+    ///   - playerId: Player ID
+    ///   - format: Audio format
+    /// - Returns: StreamURL for plugin audio
+    /// - Throws: MusicAssistantError.notConnected if not connected to server
+    public func constructPluginSourceURL(
+        pluginSource: String,
+        playerId: String,
+        format: StreamFormat
+    ) throws -> StreamURL {
+        let baseURL = try getBaseURL()
+        return StreamURL.pluginSource(
+            baseURL: baseURL,
+            pluginSource: pluginSource,
+            playerId: playerId,
+            format: format
         )
     }
 }

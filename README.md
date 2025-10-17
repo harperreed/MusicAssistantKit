@@ -8,6 +8,7 @@ A robust, lightweight Swift library for controlling [Music Assistant](https://mu
 - **Hybrid API** - async/await for commands, Combine for event streams
 - **Automatic reconnection** - Exponential backoff (1s to 60s)
 - **Core functionality** - Play control, search, queue management
+- **Streaming audio URLs** - Access streaming endpoints for client-side playback (AVPlayer, etc.)
 - **TDD approach** - Comprehensive test coverage against real server
 
 ## Requirements
@@ -110,6 +111,73 @@ client.events.queueUpdates
     }
     .store(in: &cancellables)
 ```
+
+### Streaming Audio URLs
+
+Access streaming audio URLs for client-side playback with AVPlayer or other audio frameworks:
+
+```swift
+// Subscribe to streaming events
+client.events.builtinPlayerEvents.sink { event in
+    guard event.command == .playMedia,
+          let mediaUrl = event.mediaUrl else { return }
+
+    let streamURL = client.getStreamURL(mediaPath: mediaUrl)
+    let player = AVPlayer(url: streamURL.url)
+    player.play()
+}.store(in: &cancellables)
+```
+
+See [Streaming Audio URLs Documentation](docs/streaming-audio-urls.md) for complete usage guide.
+
+## CLI Tools
+
+### ma-stream
+
+Monitor BUILTIN_PLAYER events and display streaming URLs in real-time:
+
+```bash
+# Default monitoring with URL testing
+ma-stream
+
+# Custom host/port
+ma-stream --host 192.168.23.196 --port 8095
+
+# JSON output for scripting
+ma-stream --json
+
+# Fast mode without URL testing
+ma-stream --no-test
+```
+
+Perfect for debugging streaming issues, extracting URLs, or integrating with other tools. See [docs/cli/ma-stream.md](docs/cli/ma-stream.md) for complete documentation.
+
+### ma-player
+
+Comprehensive Music Assistant audio player CLI with full playback control:
+
+```bash
+# Start playback
+ma-player play --player builtin spotify:track:xyz
+
+# Control playback
+ma-player control --player builtin next
+ma-player control --player builtin pause
+
+# Set volume
+ma-player volume --player builtin 75
+
+# Monitor events
+ma-player monitor --player builtin --json
+
+# Queue management
+ma-player queue --player builtin list
+
+# Check status
+ma-player info --player builtin
+```
+
+See [docs/cli/ma-player.md](docs/cli/ma-player.md) for complete usage guide.
 
 ## Error Handling
 

@@ -30,9 +30,22 @@ let package = Package(
             name: "ma-status",
             targets: ["MAStatus"]
         ),
+        .executable(
+            name: "ma-api-discovery",
+            targets: ["MAAPIDiscovery"]
+        ),
+        .executable(
+            name: "ma-stream",
+            targets: ["MAStream"]
+        ),
+        .executable(
+            name: "ma-player",
+            targets: ["MAPlayer"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-testing.git", from: "0.10.0"),
+        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.2.0"),
     ],
     targets: [
         .target(
@@ -54,12 +67,57 @@ let package = Package(
             name: "MAStatus",
             dependencies: ["MusicAssistantKit"]
         ),
+        .executableTarget(
+            name: "MAAPIDiscovery",
+            dependencies: ["MusicAssistantKit"]
+        ),
+        .target(
+            name: "MAStreamLib",
+            dependencies: [
+                "MusicAssistantKit",
+            ]
+        ),
+        .executableTarget(
+            name: "MAStream",
+            dependencies: [
+                "MAStreamLib",
+                "MusicAssistantKit",
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+            ]
+        ),
+        .target(
+            name: "MAPlayerLib",
+            dependencies: ["MusicAssistantKit"],
+            path: "Sources/MAPlayerLib"
+        ),
+        .executableTarget(
+            name: "MAPlayer",
+            dependencies: [
+                "MAPlayerLib",
+                "MAStreamLib",
+                "MusicAssistantKit",
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+            ],
+            path: "Sources/MAPlayer"
+        ),
         .testTarget(
             name: "MusicAssistantKitTests",
             dependencies: [
                 "MusicAssistantKit",
                 .product(name: "Testing", package: "swift-testing"),
             ]
+        ),
+        .testTarget(
+            name: "MAStreamTests",
+            dependencies: [
+                "MAStreamLib",
+                "MusicAssistantKitTests",
+            ]
+        ),
+        .testTarget(
+            name: "MAPlayerLibTests",
+            dependencies: ["MAPlayerLib", "MusicAssistantKit"],
+            path: "Tests/MAPlayerLibTests"
         ),
     ]
 )

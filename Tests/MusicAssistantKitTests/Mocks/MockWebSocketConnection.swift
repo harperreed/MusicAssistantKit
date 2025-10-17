@@ -28,10 +28,15 @@ actor MockWebSocketConnection: WebSocketConnectionProtocol {
             serverId: "mock-server",
             homeassistantAddon: false,
             capabilities: ["test"],
-            baseUrl: nil,
+            baseUrl: "http://localhost:8095",
             onboardDone: true
         )
         state = .connected(serverInfo: serverInfo)
+
+        // Send serverInfo message to the client
+        if let handler = messageHandler {
+            await handler(.serverInfo(serverInfo))
+        }
     }
 
     func disconnect() async {
@@ -93,5 +98,32 @@ actor MockWebSocketConnection: WebSocketConnectionProtocol {
 
     func clearCommands() {
         sentCommands.removeAll()
+    }
+
+    /// Simulate BUILTIN_PLAYER event with media URL
+    func simulateBuiltinPlayerEvent(
+        command: String,
+        mediaUrl: String? = nil,
+        queueId: String? = nil,
+        queueItemId: String? = nil
+    ) async {
+        var data: [String: Any] = ["command": command]
+        if let mediaUrl = mediaUrl {
+            data["media_url"] = mediaUrl
+        }
+        if let queueId = queueId {
+            data["queue_id"] = queueId
+        }
+        if let queueItemId = queueItemId {
+            data["queue_item_id"] = queueItemId
+        }
+
+        let event = Event(
+            event: "BUILTIN_PLAYER",
+            objectId: nil,
+            data: AnyCodable(data)
+        )
+
+        await simulateEvent(event)
     }
 }
