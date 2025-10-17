@@ -179,4 +179,46 @@ public actor PlayerSession {
     public func clearQueue() async throws {
         try await client.clearQueue(queueId: playerId)
     }
+
+    public struct PlaybackInfo: Sendable {
+        public let playerState: String
+        public let currentTrack: String?
+        public let position: TimeInterval?
+        public let duration: TimeInterval?
+        public let volume: Int?
+        public let queueSize: Int?
+    }
+
+    public func getPlaybackInfo() async throws -> PlaybackInfo {
+        // Get all players and find ours
+        let playersResponse = try await client.getPlayers()
+        var playerData: [String: AnyCodable]?
+
+        if let players = playersResponse?.value as? [[String: Any]] {
+            playerData = players.first { player in
+                (player["player_id"] as? String) == playerId
+            } as? [String: AnyCodable]
+        }
+
+        // Get queue info
+        let queueResponse = try? await client.getQueueItems(queueId: playerId)
+        var queueSize: Int?
+        if let queueData = queueResponse?.value as? [String: Any],
+           let items = queueData["items"] as? [Any] {
+            queueSize = items.count
+        }
+
+        // Get AVPlayer state
+        let position = await MainActor.run { audioPlayer.currentTime.seconds }
+        let duration = await MainActor.run { audioPlayer.duration?.seconds }
+
+        return PlaybackInfo(
+            playerState: (playerData?["state"]?.value as? String) ?? "unknown",
+            currentTrack: playerData?["current_item"]?.value as? String,
+            position: position > 0 ? position : nil,
+            duration: duration,
+            volume: playerData?["volume_level"]?.value as? Int,
+            queueSize: queueSize
+        )
+    }
 }

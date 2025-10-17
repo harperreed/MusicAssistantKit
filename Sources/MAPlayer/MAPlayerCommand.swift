@@ -15,6 +15,7 @@ struct MAPlayerCommand: AsyncParsableCommand {
             VolumeCommand.self,
             MonitorCommand.self,
             QueueCommand.self,
+            InfoCommand.self,
         ]
     )
 }
