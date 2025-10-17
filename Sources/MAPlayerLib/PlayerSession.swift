@@ -77,4 +77,31 @@ public actor PlayerSession {
             uri: uri
         )
     }
+
+    public func next() async throws {
+        try await client.next(playerId: playerId)
+    }
+
+    public func previous() async throws {
+        try await client.previous(playerId: playerId)
+    }
+
+    public func pause() async {
+        await MainActor.run {
+            audioPlayer.pause()
+        }
+    }
+
+    public func resume() async {
+        await MainActor.run {
+            audioPlayer.play()
+        }
+    }
+
+    public func stop() async throws {
+        try await client.stop(playerId: playerId)
+        await MainActor.run {
+            audioPlayer.pause()
+        }
+    }
 }

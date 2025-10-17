@@ -11,6 +11,7 @@ struct MAPlayerCommand: AsyncParsableCommand {
         version: "1.0.0",
         subcommands: [
             PlayCommand.self,
+            ControlCommand.self,
         ]
     )
 }
