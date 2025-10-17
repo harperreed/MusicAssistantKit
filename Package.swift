@@ -94,6 +94,7 @@ let package = Package(
             name: "MAPlayer",
             dependencies: [
                 "MAPlayerLib",
+                "MAStreamLib",
                 "MusicAssistantKit",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ],

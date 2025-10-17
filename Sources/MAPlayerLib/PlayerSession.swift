@@ -2,7 +2,7 @@
 // ABOUTME: Actor-isolated for thread-safe access, bridges WebSocket events to AVPlayer
 
 import AVFoundation
-import Combine
+@preconcurrency import Combine
 import Foundation
 import MusicAssistantKit
 
@@ -21,6 +21,12 @@ public enum MAPlayerError: LocalizedError {
             "Playback failed: \(reason)"
         }
     }
+}
+
+public struct StreamInfo: Sendable {
+    public let event: BuiltinPlayerEvent
+    public let streamURL: String?
+    public let timestamp: Date
 }
 
 public actor PlayerSession {
@@ -131,5 +137,38 @@ public actor PlayerSession {
             playerId: playerId,
             volume: Double(level)
         )
+    }
+
+    public nonisolated var streamEvents: AsyncStream<StreamInfo> {
+        AsyncStream { continuation in
+            Task { [client, playerId] in
+                let events = await client.events
+
+                let cancellable = events.builtinPlayerEvents
+                    .filter { event in
+                        (event.queueId?.contains(playerId) ?? false) && event.command == .playMedia
+                    }
+                    .sink { event in
+                        Task { [client] in
+                            var streamURL: String?
+                            if let mediaUrl = event.mediaUrl {
+                                streamURL = try? await client.getStreamURL(mediaPath: mediaUrl).url.absoluteString
+                            }
+
+                            let info = StreamInfo(
+                                event: event,
+                                streamURL: streamURL,
+                                timestamp: Date()
+                            )
+
+                            continuation.yield(info)
+                        }
+                    }
+
+                continuation.onTermination = { @Sendable _ in
+                    cancellable.cancel()
+                }
+            }
+        }
     }
 }
