@@ -31,7 +31,7 @@ public struct BuiltinPlayerEvent: Sendable {
         guard let typeString = data["type"]?.value as? String,
               let type = BuiltinPlayerEventType(rawValue: typeString)
         else {
-            throw MusicAssistantError.invalidResponse(message: "Invalid event type")
+            throw MusicAssistantError.invalidResponse
         }
 
         self.type = type

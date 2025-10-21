@@ -37,7 +37,7 @@ public actor StreamingPlayer {
         {
             playerId = id
         } else {
-            throw MusicAssistantError.invalidResponse(message: "Failed to get player_id from registration")
+            throw MusicAssistantError.invalidResponse
         }
 
         // Subscribe to built-in player events
@@ -66,7 +66,7 @@ public actor StreamingPlayer {
     }
 
     private func subscribeToEvents() async {
-        await client.events.builtinPlayerEvents
+        client.events.builtinPlayerEvents
             .sink { [weak self] playerId, event in
                 guard let self else { return }
                 Task { [weak self] in
@@ -122,8 +122,7 @@ public actor StreamingPlayer {
         powered = true
 
         // Construct full URL
-        guard let playerId,
-              let baseURL = await getBaseURL()
+        guard let baseURL = await getBaseURL()
         else { return }
 
         let streamURL = baseURL.appendingPathComponent(urlPath)
@@ -209,7 +208,7 @@ public actor StreamingPlayer {
         currentPosition = position
     }
 
-    private func getBaseURL() async -> URL? {
+    private nonisolated func getBaseURL() async -> URL? {
         // Construct base URL from client's host and port
         let host = await client.host
         let port = await client.port
