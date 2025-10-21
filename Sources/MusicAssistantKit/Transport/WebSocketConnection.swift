@@ -14,6 +14,13 @@ actor WebSocketConnection: WebSocketConnectionProtocol {
     private var reconnectAttempt: Int = 0
     private let maxReconnectDelay: UInt64 = 60_000_000_000 // 60 seconds in nanoseconds
 
+    var serverInfo: ServerInfo? {
+        if case let .connected(serverInfo) = state {
+            return serverInfo
+        }
+        return nil
+    }
+
     init(host: String, port: Int) {
         self.host = host
         self.port = port

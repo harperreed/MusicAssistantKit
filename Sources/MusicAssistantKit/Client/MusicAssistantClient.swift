@@ -278,4 +278,65 @@ public actor MusicAssistantClient {
             ]
         )
     }
+
+    // MARK: - Streaming Commands (Resonate Protocol Support)
+
+    /// Get streaming URL for a media item
+    /// - Parameters:
+    ///   - mediaItemId: The ID of the media item to stream
+    ///   - preferredProtocol: Preferred streaming protocol (defaults to .resonate)
+    /// - Returns: StreamingInfo with URL and format details
+    public func getStreamURL(
+        mediaItemId: String,
+        preferredProtocol: StreamProtocol = .resonate
+    ) async throws -> StreamingInfo? {
+        let result = try await sendCommand(
+            command: "music/get_stream_url",
+            args: [
+                "media_item_id": mediaItemId,
+                "protocol": preferredProtocol.rawValue,
+            ]
+        )
+
+        guard let result else { return nil }
+
+        // Parse the result into StreamingInfo
+        let data = try JSONSerialization.data(withJSONObject: result.value)
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        return try decoder.decode(StreamingInfo.self, from: data)
+    }
+
+    /// Get Resonate streaming information for a queue
+    /// This is used for synchronized multi-room audio playback
+    /// - Parameter queueId: The queue/player ID to get Resonate stream for
+    /// - Returns: StreamingInfo configured for Resonate protocol
+    public func getResonateStream(queueId: String) async throws -> StreamingInfo? {
+        let result = try await sendCommand(
+            command: "player_queues/get_resonate_stream",
+            args: ["queue_id": queueId]
+        )
+
+        guard let result else { return nil }
+
+        let data = try JSONSerialization.data(withJSONObject: result.value)
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        return try decoder.decode(StreamingInfo.self, from: data)
+    }
+
+    /// Check if the server supports Resonate protocol
+    /// - Returns: true if Resonate protocol is available
+    public func supportsResonateProtocol() async -> Bool {
+        guard let serverInfo = await getServerInfo() else {
+            return false
+        }
+        return serverInfo.capabilities?.contains("resonate") ?? false
+    }
+
+    /// Get server information including capabilities
+    /// - Returns: ServerInfo if connected, nil otherwise
+    public func getServerInfo() async -> ServerInfo? {
+        await connection.serverInfo
+    }
 }

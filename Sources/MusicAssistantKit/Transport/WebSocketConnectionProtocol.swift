@@ -5,6 +5,7 @@ import Foundation
 
 public protocol WebSocketConnectionProtocol: Actor {
     var state: ConnectionState { get async }
+    var serverInfo: ServerInfo? { get async }
 
     func connect() async throws
     func disconnect() async

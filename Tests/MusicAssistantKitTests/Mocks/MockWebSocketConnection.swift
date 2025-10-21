@@ -11,6 +11,15 @@ actor MockWebSocketConnection: WebSocketConnectionProtocol {
     var shouldFailConnect: Bool = false
     var shouldFailSend: Bool = false
     var connectDelay: UInt64 = 0
+    var mockCapabilities: [String] = ["test"]
+    var mockBaseUrl: String? = nil
+
+    var serverInfo: ServerInfo? {
+        if case let .connected(serverInfo) = state {
+            return serverInfo
+        }
+        return nil
+    }
 
     func connect() async throws {
         if shouldFailConnect {
@@ -27,8 +36,8 @@ actor MockWebSocketConnection: WebSocketConnectionProtocol {
             minSupportedSchemaVersion: 1,
             serverId: "mock-server",
             homeassistantAddon: false,
-            capabilities: ["test"],
-            baseUrl: nil,
+            capabilities: mockCapabilities,
+            baseUrl: mockBaseUrl,
             onboardDone: true
         )
         state = .connected(serverInfo: serverInfo)
@@ -93,5 +102,14 @@ actor MockWebSocketConnection: WebSocketConnectionProtocol {
 
     func clearCommands() {
         sentCommands.removeAll()
+    }
+
+    // Configuration methods for testing
+    func setCapabilities(_ capabilities: [String]) {
+        mockCapabilities = capabilities
+    }
+
+    func setBaseUrl(_ url: String?) {
+        mockBaseUrl = url
     }
 }

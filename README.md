@@ -8,6 +8,7 @@ A robust, lightweight Swift library for controlling [Music Assistant](https://mu
 - **Hybrid API** - async/await for commands, Combine for event streams
 - **Automatic reconnection** - Exponential backoff (1s to 60s)
 - **Core functionality** - Play control, search, queue management
+- **Resonate Protocol** - Direct streaming support for synchronized multi-room audio
 - **TDD approach** - Comprehensive test coverage against real server
 
 ## Requirements
@@ -109,6 +110,65 @@ client.events.queueUpdates
         print("Queue: \(event.queueId), Data: \(event.data)")
     }
     .store(in: &cancellables)
+```
+
+### Resonate Protocol Streaming
+
+MusicAssistantKit supports the Resonate protocol for direct streaming with synchronized multi-room audio playback.
+
+```swift
+// Check if server supports Resonate protocol
+let supportsResonate = await client.supportsResonateProtocol()
+
+if supportsResonate {
+    // Get streaming information for a queue (synchronized playback)
+    if let streamInfo = try await client.getResonateStream(queueId: "media_player.kitchen") {
+        print("Stream URL: \(streamInfo.url)")
+        print("Format: \(streamInfo.format.codec) @ \(streamInfo.format.sampleRate ?? 0)Hz")
+        print("Lossless: \(streamInfo.format.isLossless)")
+
+        // Use streamInfo.url with your audio player (e.g., AVPlayer)
+        // The Resonate protocol provides sub-millisecond synchronization
+        // for perfect multi-room audio playback
+    }
+}
+
+// Get streaming URL for a specific media item
+if let streamInfo = try await client.getStreamURL(
+    mediaItemId: "track_12345",
+    preferredProtocol: .resonate
+) {
+    print("Direct stream: \(streamInfo.url)")
+}
+
+// Get server capabilities and base URL
+if let serverInfo = await client.getServerInfo() {
+    print("Server version: \(serverInfo.serverVersion)")
+    print("Base URL: \(serverInfo.baseUrl ?? "N/A")")
+    print("Capabilities: \(serverInfo.capabilities ?? [])")
+}
+```
+
+#### Streaming Protocols
+
+MusicAssistantKit supports multiple streaming protocols:
+
+- **`.resonate`** - Resonate protocol for synchronized multi-room HiFi audio (WebSocket-based)
+- **`.http`** - Standard HTTP streaming
+- **`.https`** - HTTPS streaming
+- **`.file`** - Direct file access
+
+#### Audio Formats
+
+The `AudioFormat` struct provides comprehensive format information:
+
+```swift
+let format = streamInfo.format
+print("Codec: \(format.codec)")           // e.g., "flac", "mp3", "aac"
+print("Sample Rate: \(format.sampleRate ?? 0)Hz")  // e.g., 44100, 48000, 96000
+print("Bit Depth: \(format.bitDepth ?? 0)")        // e.g., 16, 24
+print("Bitrate: \(format.bitrate ?? 0)kbps")       // for lossy formats
+print("Lossless: \(format.isLossless)")    // true for FLAC, ALAC, WAV
 ```
 
 ## Error Handling

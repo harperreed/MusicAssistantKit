@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Added
+- **Resonate Protocol Support** - Direct streaming support for synchronized multi-room audio
+  - `StreamProtocol` enum for different streaming protocols (resonate, http, https, file)
+  - `AudioFormat` struct with comprehensive codec, sample rate, and bit depth information
+  - `StreamingInfo` model for complete streaming URL and metadata
+  - `getStreamURL(mediaItemId:preferredProtocol:)` - Get streaming URL for a media item
+  - `getResonateStream(queueId:)` - Get Resonate streaming info for synchronized multi-room playback
+  - `supportsResonateProtocol()` - Check server capability for Resonate protocol
+  - `getServerInfo()` - Access server information including capabilities and base URL
+  - Added `serverInfo` property to `WebSocketConnectionProtocol` for accessing server capabilities
+  - Comprehensive unit tests for streaming models and commands
+
 ### Fixed
 - Fixed ServerInfo decoding to handle additional fields (`base_url`, `onboard_done`) sent by Music Assistant server v2.7.0+
 - Fixed Event.data type to use AnyCodable instead of dictionary to handle numeric and other non-dictionary event data
@@ -12,6 +24,7 @@
 ### Changed
 - Event.data field changed from `[String: AnyCodable]?` to `AnyCodable?` for better flexibility
 - EventPublisher now properly converts AnyCodable event data to dictionaries before creating typed events
+- MockWebSocketConnection now supports configurable capabilities and base URL for testing
 
 ## [0.1.0] - 2025-10-10
 
