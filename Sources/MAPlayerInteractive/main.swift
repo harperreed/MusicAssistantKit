@@ -62,26 +62,25 @@ import MusicAssistantKit
                 print("─────────────────────────────────────────────────")
                 print("")
 
-                // Set up signal handling for graceful shutdown
-                let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
-                sigintSrc.setEventHandler {
-                    Task {
-                        print("")
-                        print("─────────────────────────────────────────────────")
-                        print("")
-                        print("🛑 Shutting down...")
-                        try? await player.unregister()
-                        await client.disconnect()
-                        print("✓ Player unregistered and disconnected")
-                        print("👋 Goodbye!")
-                        exit(0)
+                // Set up signal handling and wait for Ctrl+C
+                await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+                    let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
+                    sigintSrc.setEventHandler {
+                        continuation.resume()
                     }
+                    sigintSrc.resume()
+                    signal(SIGINT, SIG_IGN)
                 }
-                sigintSrc.resume()
-                signal(SIGINT, SIG_IGN)
 
-                // Keep running indefinitely
-                dispatchMain()
+                // Cleanup
+                print("")
+                print("─────────────────────────────────────────────────")
+                print("")
+                print("🛑 Shutting down...")
+                try? await player.unregister()
+                await client.disconnect()
+                print("✓ Player unregistered and disconnected")
+                print("👋 Goodbye!")
             } else {
                 print("✗ Failed to get player ID")
                 await client.disconnect()
