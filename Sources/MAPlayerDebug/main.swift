@@ -63,7 +63,7 @@ struct MAPlayerDebug {
 
                 // Unregister
                 print("\n🧹 Cleaning up - unregistering player...")
-                try await client.unregisterBuiltinPlayer(playerId: playerId)
+                _ = try await client.unregisterBuiltinPlayer(playerId: playerId)
                 print("✓ Unregistered")
             } else {
                 print("\n✗ Failed to extract player_id from response")

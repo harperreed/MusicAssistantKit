@@ -9,6 +9,10 @@ import MusicAssistantKit
     @available(macOS 12.0, iOS 15.0, *)
     @main
     struct MAPlayerInteractive {
+        // Keep cancellables alive for the duration of the program
+        @MainActor
+        static var globalCancellables = Set<AnyCancellable>()
+
         static func main() async throws {
             let host = ProcessInfo.processInfo.environment["MA_HOST"] ?? "localhost"
             let port = Int(ProcessInfo.processInfo.environment["MA_PORT"] ?? "8095") ?? 8095
@@ -63,7 +67,6 @@ import MusicAssistantKit
                 print("")
 
                 // Set up signal handling and wait for Ctrl+C
-                var signalSource: DispatchSourceSignal?
                 await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
                     let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
                     sigintSrc.setEventHandler {
@@ -71,7 +74,9 @@ import MusicAssistantKit
                     }
                     sigintSrc.resume()
                     signal(SIGINT, SIG_IGN)
-                    signalSource = sigintSrc  // Keep alive
+
+                    // Keep signal source alive
+                    withExtendedLifetime(sigintSrc) {}
                 }
 
                 // Cleanup
@@ -89,21 +94,13 @@ import MusicAssistantKit
             }
         }
 
+        @MainActor
         static func subscribeToEvents(client: MusicAssistantClient, playerId: String) async {
-            var cancellables = Set<AnyCancellable>()
-            var lastState: String?
-
             // Get host/port for URL construction
             let host = await client.host
             let port = await client.port
 
-            await client.events.builtinPlayerEvents
-                .sink { eventPlayerId, event in
-                    guard eventPlayerId == playerId else { return }
-                    displayEvent(event)
-                }
-                .store(in: &cancellables)
-
+            // Subscribe to raw events to get detailed information
             await client.events.rawEvents
                 .sink { event in
                     if event.event == "builtin_player",
@@ -144,21 +141,15 @@ import MusicAssistantKit
                             stateIndicator = "📡 \(type)"
                         }
 
-                        if stateIndicator != lastState {
-                            let timestamp = DateFormatter.localizedString(
-                                from: Date(),
-                                dateStyle: .none,
-                                timeStyle: .medium
-                            )
-                            print("[\(timestamp)] \(stateIndicator)")
-                            lastState = stateIndicator
-                        }
+                        let timestamp = DateFormatter.localizedString(
+                            from: Date(),
+                            dateStyle: .none,
+                            timeStyle: .medium
+                        )
+                        print("[\(timestamp)] \(stateIndicator)")
                     }
                 }
-                .store(in: &cancellables)
-
-            // Keep cancellables alive by storing in a global
-            _ = cancellables
+                .store(in: &globalCancellables)
         }
 
         static func displayEvent(_ event: BuiltinPlayerEvent) {

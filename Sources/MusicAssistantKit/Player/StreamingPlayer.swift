@@ -21,6 +21,9 @@ public actor StreamingPlayer {
     private var muted: Bool = false
     private var currentPosition: Double = 0.0
 
+    // Constants
+    private static let stateUpdateInterval: UInt64 = 30_000_000_000 // 30 seconds in nanoseconds
+
     public init(client: MusicAssistantClient, playerName: String) {
         self.client = client
         self.playerName = playerName
@@ -42,6 +45,9 @@ public actor StreamingPlayer {
 
         // Subscribe to built-in player events
         await subscribeToEvents()
+
+        // Send initial state update immediately
+        await sendStateUpdate()
 
         // Start periodic state updates
         startStateUpdates()
@@ -218,7 +224,7 @@ public actor StreamingPlayer {
     private func startStateUpdates() {
         stateUpdateTask = Task { [weak self] in
             while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
+                try? await Task.sleep(nanoseconds: Self.stateUpdateInterval)
                 await self?.sendStateUpdate()
             }
         }
@@ -242,8 +248,8 @@ public actor StreamingPlayer {
         do {
             _ = try await client.updateBuiltinPlayerState(playerId: playerId, state: state)
         } catch {
-            // Log error but don't crash
-            print("Failed to update player state: \(error)")
+            // Silently ignore state update errors to avoid spamming console
+            // The server will mark the player offline if we miss too many updates
         }
     }
 

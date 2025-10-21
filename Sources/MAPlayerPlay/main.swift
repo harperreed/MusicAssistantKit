@@ -70,26 +70,33 @@ enum MAPlayerError: Error {
             do {
                 // Try to play the URL
                 // For built-in players, the queue ID is the same as the player ID
-                print("   Sending playMedia command...")
-                print("   Queue ID: \(playerId)")
-                print("   URI: \(url)")
+                print("   Queueing media to player...")
                 print("")
 
-                let result = try await withThrowingTaskGroup(of: AnyCodable?.self) { group in
+                let result = try await withThrowingTaskGroup(of: (Bool, AnyCodable?).self) { group in
                     group.addTask {
-                        try await client.playMedia(
+                        _ = try await client.playMedia(
                             queueId: playerId,
                             uri: url
                         )
+                        return (true, nil)  // Success
                     }
 
                     group.addTask {
                         try await Task.sleep(for: .seconds(10))
+                        return (false, nil)  // Timeout
+                    }
+
+                    guard let (isSuccess, result) = try await group.next() else {
                         throw MAPlayerError.timeout
                     }
 
-                    let result = try await group.next()!
                     group.cancelAll()
+
+                    if !isSuccess {
+                        throw MAPlayerError.timeout
+                    }
+
                     return result
                 }
 
@@ -115,7 +122,6 @@ enum MAPlayerError: Error {
 
                 // Set up signal handling for early exit
                 var shouldStop = false
-                var signalSource: DispatchSourceSignal?
 
                 await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
                     let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
@@ -125,7 +131,6 @@ enum MAPlayerError: Error {
                     }
                     sigintSrc.resume()
                     signal(SIGINT, SIG_IGN)
-                    signalSource = sigintSrc
 
                     // Also resume after duration timeout
                     Task {
@@ -134,6 +139,9 @@ enum MAPlayerError: Error {
                             continuation.resume()
                         }
                     }
+
+                    // Keep signal source alive
+                    withExtendedLifetime(sigintSrc) {}
                 }
 
                 // Cleanup
