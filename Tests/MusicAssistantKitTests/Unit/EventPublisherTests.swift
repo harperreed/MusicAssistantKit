@@ -23,7 +23,7 @@ struct EventPublisherTests {
             data: AnyCodable(["state": "playing", "volume": 75])
         )
 
-        publisher.publish(event)
+        await publisher.publish(event)
 
         // Give Combine a moment to process
         try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
@@ -49,7 +49,7 @@ struct EventPublisherTests {
             data: AnyCodable(["shuffle": true])
         )
 
-        publisher.publish(event)
+        await publisher.publish(event)
 
         try? await Task.sleep(nanoseconds: 100_000_000)
 
@@ -74,7 +74,7 @@ struct EventPublisherTests {
             data: AnyCodable(["items": []])
         )
 
-        publisher.publish(event)
+        await publisher.publish(event)
 
         try? await Task.sleep(nanoseconds: 100_000_000)
 
@@ -94,9 +94,9 @@ struct EventPublisherTests {
         }
 
         // Publish different event types
-        publisher.publish(Event(event: "player_updated", objectId: "p1", data: nil))
-        publisher.publish(Event(event: "queue_updated", objectId: "q1", data: nil))
-        publisher.publish(Event(event: "unknown_event", objectId: nil, data: nil))
+        await publisher.publish(Event(event: "player_updated", objectId: "p1", data: nil))
+        await publisher.publish(Event(event: "queue_updated", objectId: "q1", data: nil))
+        await publisher.publish(Event(event: "unknown_event", objectId: nil, data: nil))
 
         try? await Task.sleep(nanoseconds: 100_000_000)
 
@@ -118,7 +118,7 @@ struct EventPublisherTests {
         let queueCancellable = publisher.queueUpdates.sink { queueEvents.append($0) }
 
         let event = Event(event: "unknown_event", objectId: "test", data: nil)
-        publisher.publish(event)
+        await publisher.publish(event)
 
         try? await Task.sleep(nanoseconds: 100_000_000)
 
@@ -139,7 +139,7 @@ struct EventPublisherTests {
         }
 
         let event = Event(event: "server_status", objectId: nil, data: nil)
-        publisher.publish(event)
+        await publisher.publish(event)
 
         try? await Task.sleep(nanoseconds: 100_000_000)
 

@@ -82,7 +82,7 @@ public actor MusicAssistantClient {
                 continuation.resume(throwing: maError)
             }
         case let .event(event):
-            events.publish(event)
+            await events.publish(event)
         case .serverInfo, .unknown:
             break
         }
