@@ -4,9 +4,9 @@
 import Foundation
 
 public struct Event: Codable, @unchecked Sendable {
-    let event: String
-    let objectId: String?
-    let data: AnyCodable?
+    public let event: String
+    public let objectId: String?
+    public let data: AnyCodable?
 
     enum CodingKeys: String, CodingKey {
         case event
