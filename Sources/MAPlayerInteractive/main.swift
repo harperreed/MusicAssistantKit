@@ -93,6 +93,10 @@ import MusicAssistantKit
             var cancellables = Set<AnyCancellable>()
             var lastState: String?
 
+            // Get host/port for URL construction
+            let host = await client.host
+            let port = await client.port
+
             await client.events.builtinPlayerEvents
                 .sink { eventPlayerId, event in
                     guard eventPlayerId == playerId else { return }
@@ -117,7 +121,8 @@ import MusicAssistantKit
                             stateIndicator = "⏹️  STOPPED"
                         case "PLAY_MEDIA":
                             if let mediaUrl = data["media_url"] as? String {
-                                stateIndicator = "🎶 STREAMING: \(mediaUrl)"
+                                let fullUrl = "http://\(host):\(port)/\(mediaUrl)"
+                                stateIndicator = "🎶 STREAMING:\n   URL: \(fullUrl)\n   Path: \(mediaUrl)"
                             } else {
                                 stateIndicator = "🎶 STREAMING"
                             }

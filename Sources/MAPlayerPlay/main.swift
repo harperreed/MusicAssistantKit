@@ -75,6 +75,12 @@ import MusicAssistantKit
                 print("   Response: \(String(describing: result))")
                 print("")
 
+                // Show the streaming URL
+                let streamingUrl = "http://\(host):\(port)/builtin_player/flow/\(playerId).mp3"
+                print("🔊 Streaming from:")
+                print("   \(streamingUrl)")
+                print("")
+
                 // Wait for the specified duration
                 print("⏱️  Playing for \(Int(duration)) seconds...")
                 print("   (Press Ctrl+C to stop early)")
