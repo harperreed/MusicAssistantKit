@@ -5,6 +5,10 @@ import AVFoundation
 import Combine
 import Foundation
 
+#if canImport(AVFAudio)
+    import AVFAudio
+#endif
+
 @available(macOS 12.0, iOS 15.0, *)
 public actor StreamingPlayer {
     private let client: MusicAssistantClient
@@ -129,20 +133,34 @@ public actor StreamingPlayer {
 
         // Construct full URL
         guard let baseURL = await getBaseURL()
-        else { return }
+        else {
+            print("⚠️  Failed to construct base URL")
+            return
+        }
 
         let streamURL = baseURL.appendingPathComponent(urlPath)
+        print("🎵 Loading stream from: \(streamURL)")
+
+        // Configure audio session for playback
+        configureAudioSession()
 
         // Create or update player
         if player == nil {
             player = AVPlayer()
             setupTimeObserver()
+            print("✓ Created new AVPlayer instance")
         }
 
         let playerItem = AVPlayerItem(url: streamURL)
+
+        // Observe player item status for debugging
+        observePlayerItem(playerItem)
+
         player?.replaceCurrentItem(with: playerItem)
         player?.volume = Float(volume / 100.0)
         player?.isMuted = muted
+
+        print("▶️  Starting playback (volume: \(Int(volume))%, muted: \(muted))")
         player?.play()
 
         await sendStateUpdate()
@@ -212,6 +230,44 @@ public actor StreamingPlayer {
 
     private func updateCurrentPosition(_ position: Double) {
         currentPosition = position
+    }
+
+    private nonisolated func configureAudioSession() {
+        #if os(macOS)
+            // macOS doesn't need audio session configuration like iOS
+            // AVPlayer should automatically route to default output
+        #elseif os(iOS)
+            do {
+                let session = AVAudioSession.sharedInstance()
+                try session.setCategory(.playback, mode: .default)
+                try session.setActive(true)
+                print("✓ Configured audio session for playback")
+            } catch {
+                print("⚠️  Failed to configure audio session: \(error)")
+            }
+        #endif
+    }
+
+    private func observePlayerItem(_ item: AVPlayerItem) {
+        // Observe status changes to debug playback issues
+        Task { @MainActor in
+            for await status in item.publisher(for: \.status).values {
+                switch status {
+                case .readyToPlay:
+                    print("✓ Player item ready to play")
+                case .failed:
+                    if let error = item.error {
+                        print("❌ Player item failed: \(error.localizedDescription)")
+                    } else {
+                        print("❌ Player item failed with unknown error")
+                    }
+                case .unknown:
+                    print("⏳ Player item status unknown")
+                @unknown default:
+                    print("⚠️  Player item unknown status: \(status)")
+                }
+            }
+        }
     }
 
     private nonisolated func getBaseURL() async -> URL? {

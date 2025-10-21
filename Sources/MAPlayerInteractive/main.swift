@@ -103,50 +103,52 @@ import MusicAssistantKit
             // Subscribe to raw events to get detailed information
             await client.events.rawEvents
                 .sink { event in
-                    if event.event == "builtin_player",
-                       event.objectId == playerId,
-                       let data = event.data?.value as? [String: Any],
-                       let type = data["type"] as? String {
+                    Task { @MainActor in
+                        if event.event == "builtin_player",
+                           event.objectId == playerId,
+                           let data = event.data?.value as? [String: Any],
+                           let type = data["type"] as? String {
 
-                        let stateIndicator: String
-                        switch type {
-                        case "PLAY":
-                            stateIndicator = "▶️  PLAYING"
-                        case "PAUSE":
-                            stateIndicator = "⏸️  PAUSED"
-                        case "STOP":
-                            stateIndicator = "⏹️  STOPPED"
-                        case "PLAY_MEDIA":
-                            if let mediaUrl = data["media_url"] as? String {
-                                let fullUrl = "http://\(host):\(port)/\(mediaUrl)"
-                                stateIndicator = "🎶 STREAMING:\n   URL: \(fullUrl)\n   Path: \(mediaUrl)"
-                            } else {
-                                stateIndicator = "🎶 STREAMING"
+                            let stateIndicator: String
+                            switch type {
+                            case "PLAY":
+                                stateIndicator = "▶️  PLAYING"
+                            case "PAUSE":
+                                stateIndicator = "⏸️  PAUSED"
+                            case "STOP":
+                                stateIndicator = "⏹️  STOPPED"
+                            case "PLAY_MEDIA":
+                                if let mediaUrl = data["media_url"] as? String {
+                                    let fullUrl = "http://\(host):\(port)/\(mediaUrl)"
+                                    stateIndicator = "🎶 STREAMING:\n   URL: \(fullUrl)\n   Path: \(mediaUrl)"
+                                } else {
+                                    stateIndicator = "🎶 STREAMING"
+                                }
+                            case "SET_VOLUME":
+                                if let volume = data["volume"] as? Double {
+                                    stateIndicator = "🔊 VOLUME: \(Int(volume))%"
+                                } else {
+                                    stateIndicator = "🔊 VOLUME"
+                                }
+                            case "MUTE":
+                                stateIndicator = "🔇 MUTED"
+                            case "UNMUTE":
+                                stateIndicator = "🔊 UNMUTED"
+                            case "POWER_ON":
+                                stateIndicator = "⚡ POWER ON"
+                            case "POWER_OFF":
+                                stateIndicator = "💤 POWER OFF"
+                            default:
+                                stateIndicator = "📡 \(type)"
                             }
-                        case "SET_VOLUME":
-                            if let volume = data["volume"] as? Double {
-                                stateIndicator = "🔊 VOLUME: \(Int(volume))%"
-                            } else {
-                                stateIndicator = "🔊 VOLUME"
-                            }
-                        case "MUTE":
-                            stateIndicator = "🔇 MUTED"
-                        case "UNMUTE":
-                            stateIndicator = "🔊 UNMUTED"
-                        case "POWER_ON":
-                            stateIndicator = "⚡ POWER ON"
-                        case "POWER_OFF":
-                            stateIndicator = "💤 POWER OFF"
-                        default:
-                            stateIndicator = "📡 \(type)"
+
+                            let timestamp = DateFormatter.localizedString(
+                                from: Date(),
+                                dateStyle: .none,
+                                timeStyle: .medium
+                            )
+                            print("[\(timestamp)] \(stateIndicator)")
                         }
-
-                        let timestamp = DateFormatter.localizedString(
-                            from: Date(),
-                            dateStyle: .none,
-                            timeStyle: .medium
-                        )
-                        print("[\(timestamp)] \(stateIndicator)")
                     }
                 }
                 .store(in: &globalCancellables)
