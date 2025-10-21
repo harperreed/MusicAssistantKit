@@ -151,45 +151,6 @@ import MusicAssistantKit
                 }
                 .store(in: &globalCancellables)
         }
-
-        static func displayEvent(_ event: BuiltinPlayerEvent) {
-            let timestamp = DateFormatter.localizedString(
-                from: Date(),
-                dateStyle: .none,
-                timeStyle: .medium
-            )
-
-            switch event.type {
-            case .play:
-                print("[\(timestamp)] ▶️  PLAY command received")
-            case .pause:
-                print("[\(timestamp)] ⏸️  PAUSE command received")
-            case .stop:
-                print("[\(timestamp)] ⏹️  STOP command received")
-            case .playMedia:
-                if let url = event.mediaUrl {
-                    print("[\(timestamp)] 🎶 PLAY_MEDIA: \(url)")
-                } else {
-                    print("[\(timestamp)] 🎶 PLAY_MEDIA command received")
-                }
-            case .setVolume:
-                if let vol = event.volume {
-                    print("[\(timestamp)] 🔊 SET_VOLUME: \(Int(vol))%")
-                } else {
-                    print("[\(timestamp)] 🔊 SET_VOLUME command received")
-                }
-            case .mute:
-                print("[\(timestamp)] 🔇 MUTE command received")
-            case .unmute:
-                print("[\(timestamp)] 🔊 UNMUTE command received")
-            case .powerOn:
-                print("[\(timestamp)] ⚡ POWER_ON command received")
-            case .powerOff:
-                print("[\(timestamp)] 💤 POWER_OFF command received")
-            case .timeout:
-                print("[\(timestamp)] ⏱️  Player timed out (no state update)")
-            }
-        }
     }
 #else
     @main

@@ -121,13 +121,15 @@ enum MAPlayerError: Error {
                 print("")
 
                 // Set up signal handling for early exit
-                var shouldStop = false
+                let shouldStop = await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
+                    var resumed = false
 
-                await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
                     let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
                     sigintSrc.setEventHandler {
-                        shouldStop = true
-                        continuation.resume()
+                        if !resumed {
+                            resumed = true
+                            continuation.resume(returning: true)
+                        }
                     }
                     sigintSrc.resume()
                     signal(SIGINT, SIG_IGN)
@@ -135,8 +137,9 @@ enum MAPlayerError: Error {
                     // Also resume after duration timeout
                     Task {
                         try? await Task.sleep(for: .seconds(duration))
-                        if !shouldStop {
-                            continuation.resume()
+                        if !resumed {
+                            resumed = true
+                            continuation.resume(returning: false)
                         }
                     }
 
