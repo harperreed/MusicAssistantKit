@@ -358,7 +358,7 @@ struct MusicAssistantClientTests {
         let command = await mock.getLastCommand()
         #expect(command?.command == "player_queues/play_media")
         #expect(command?.args?["queue_id"]?.value as? String == "test-queue")
-        #expect(command?.args?["uri"]?.value as? String == "test://uri")
+        #expect(command?.args?["media"]?.value as? String == "test://uri")
         #expect(command?.args?["option"]?.value as? String == "play")
         #expect(command?.args?["radio_mode"]?.value as? Bool == false)
 

@@ -243,7 +243,7 @@ public actor MusicAssistantClient {
             command: "player_queues/play_media",
             args: [
                 "queue_id": queueId,
-                "uri": uri,
+                "media": uri,
                 "option": option,
                 "radio_mode": radioMode,
             ]
