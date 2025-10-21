@@ -112,7 +112,9 @@ client.events.queueUpdates
     .store(in: &cancellables)
 ```
 
-### Resonate Protocol Streaming
+### Resonate Protocol Streaming (Experimental)
+
+> **⚠️ Experimental Feature**: Resonate protocol support is experimental and under active development. The API endpoints and data structures shown below are speculative and based on protocol documentation. **You should verify these endpoints against your actual Music Assistant server implementation.** Expect possible changes or incompatibilities as the Resonate protocol evolves.
 
 MusicAssistantKit supports the Resonate protocol for direct streaming with synchronized multi-room audio playback.
 
