@@ -290,12 +290,13 @@ public actor MusicAssistantClient {
     // MARK: - Built-in Player Commands
 
     public func registerBuiltinPlayer(playerName: String, playerId: String? = nil) async throws -> AnyCodable? {
-        try await sendCommand(
+        var args: [String: Any] = ["player_name": playerName]
+        if let playerId {
+            args["player_id"] = playerId
+        }
+        return try await sendCommand(
             command: "builtin_player/register",
-            args: [
-                "player_name": playerName,
-                "player_id": playerId as Any,
-            ]
+            args: args
         )
     }
 
