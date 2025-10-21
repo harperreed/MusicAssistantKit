@@ -4,6 +4,10 @@
 import Foundation
 import MusicAssistantKit
 
+enum MAPlayerError: Error {
+    case timeout
+}
+
 #if os(macOS) || os(iOS)
     @available(macOS 12.0, iOS 15.0, *)
     @main
@@ -66,19 +70,42 @@ import MusicAssistantKit
             do {
                 // Try to play the URL
                 // For built-in players, the queue ID is the same as the player ID
-                let result = try await client.playMedia(
-                    queueId: playerId,
-                    uri: url
-                )
+                print("   Sending playMedia command...")
+                print("   Queue ID: \(playerId)")
+                print("   URI: \(url)")
+                print("")
 
-                print("✓ Play command sent")
-                print("   Response: \(String(describing: result))")
+                let result = try await withThrowingTaskGroup(of: AnyCodable?.self) { group in
+                    group.addTask {
+                        try await client.playMedia(
+                            queueId: playerId,
+                            uri: url
+                        )
+                    }
+
+                    group.addTask {
+                        try await Task.sleep(for: .seconds(10))
+                        throw MAPlayerError.timeout
+                    }
+
+                    let result = try await group.next()!
+                    group.cancelAll()
+                    return result
+                }
+
+                print("✓ Play command sent successfully")
+                if let result = result {
+                    print("   Response: \(String(describing: result.value))")
+                } else {
+                    print("   Response: (no response)")
+                }
                 print("")
 
                 // Show the streaming URL
                 let streamingUrl = "http://\(host):\(port)/builtin_player/flow/\(playerId).mp3"
                 print("🔊 Streaming from:")
                 print("   \(streamingUrl)")
+                print("   You can also open this URL in a browser or media player!")
                 print("")
 
                 // Wait for the specified duration
@@ -122,6 +149,17 @@ import MusicAssistantKit
                 await client.disconnect()
                 print("✓ Done")
 
+            } catch MAPlayerError.timeout {
+                print("✗ Command timed out after 10 seconds")
+                print("")
+                print("💡 This usually means:")
+                print("   - The Music Assistant server is not responding")
+                print("   - The URI format is invalid")
+                print("   - Check Music Assistant server logs for errors")
+                print("")
+                try? await player.unregister()
+                await client.disconnect()
+                exit(1)
             } catch {
                 print("✗ Failed to play: \(error)")
                 print("")
@@ -129,6 +167,7 @@ import MusicAssistantKit
                 print("   - Make sure the URL is accessible")
                 print("   - Try a direct audio file URL (.mp3, .flac, etc.)")
                 print("   - Check Music Assistant logs for details")
+                print("   - For library URIs, verify the ID exists")
                 print("")
                 try? await player.unregister()
                 await client.disconnect()
