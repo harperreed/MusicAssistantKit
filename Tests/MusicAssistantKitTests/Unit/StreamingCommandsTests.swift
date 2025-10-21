@@ -1,8 +1,8 @@
 // ABOUTME: Unit tests for streaming commands and Resonate protocol capability detection
 // ABOUTME: Tests getStreamURL, getResonateStream, and supportsResonateProtocol methods
 
-import XCTest
 @testable import MusicAssistantKit
+import XCTest
 
 final class StreamingCommandsTests: XCTestCase {
     func testSupportsResonateProtocol_whenCapabilityPresent() async throws {
@@ -90,7 +90,7 @@ final class StreamingCommandsTests: XCTestCase {
 
         // Verify result
         XCTAssertNotNil(result)
-        XCTAssertEqual(result?.protocol, .resonate)
+        XCTAssertEqual(result?.`protocol`, .resonate)
         XCTAssertEqual(result?.mediaItemId, "track_123")
     }
 
@@ -127,7 +127,7 @@ final class StreamingCommandsTests: XCTestCase {
 
         // Verify result
         XCTAssertNotNil(result)
-        XCTAssertEqual(result?.protocol, .resonate)
+        XCTAssertEqual(result?.`protocol`, .resonate)
         XCTAssertEqual(result?.queueId, "queue_456")
         XCTAssertTrue(result?.supportsSeek ?? false)
     }
@@ -158,7 +158,7 @@ final class StreamingCommandsTests: XCTestCase {
         let result = try await client.getStreamURL(mediaItemId: "track_789", preferredProtocol: .http)
 
         XCTAssertNotNil(result)
-        XCTAssertEqual(result?.protocol, .http)
+        XCTAssertEqual(result?.`protocol`, .http)
         XCTAssertEqual(result?.format.codec, "mp3")
     }
 

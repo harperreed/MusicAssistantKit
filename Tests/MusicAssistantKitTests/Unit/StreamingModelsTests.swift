@@ -121,7 +121,7 @@ final class StreamingModelsTests: XCTestCase {
         let streamInfo = try decoder.decode(StreamingInfo.self, from: json)
 
         XCTAssertEqual(streamInfo.url, "ws://192.168.1.100:8095/resonate/stream/queue_123")
-        XCTAssertEqual(streamInfo.protocol, .resonate)
+        XCTAssertEqual(streamInfo.`protocol`, .resonate)
         XCTAssertEqual(streamInfo.format.codec, "flac")
         XCTAssertEqual(streamInfo.format.sampleRate, 48000)
         XCTAssertEqual(streamInfo.queueId, "queue_123")
@@ -143,6 +143,6 @@ final class StreamingModelsTests: XCTestCase {
 
         XCTAssertEqual(streamInfo.mediaItemId, "track_456")
         XCTAssertNil(streamInfo.queueId)
-        XCTAssertEqual(streamInfo.protocol, .https)
+        XCTAssertEqual(streamInfo.`protocol`, .https)
     }
 }
