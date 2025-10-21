@@ -67,17 +67,18 @@ import MusicAssistantKit
                 print("")
 
                 // Set up signal handling and wait for Ctrl+C
+                let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
+
                 await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-                    let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
                     sigintSrc.setEventHandler {
                         continuation.resume()
                     }
                     sigintSrc.resume()
                     signal(SIGINT, SIG_IGN)
-
-                    // Keep signal source alive
-                    withExtendedLifetime(sigintSrc) {}
                 }
+
+                // Signal source stays alive until here
+                sigintSrc.cancel()
 
                 // Cleanup
                 print("")
