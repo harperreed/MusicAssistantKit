@@ -10,6 +10,10 @@ public actor MusicAssistantClient {
     private var pendingCommands: [Int: CheckedContinuation<AnyCodable?, Error>] = [:]
     public let events = EventPublisher()
 
+    // Server connection info
+    public let host: String
+    public let port: Int
+
     public var isConnected: Bool {
         get async {
             await connection.state.isConnected
@@ -17,11 +21,15 @@ public actor MusicAssistantClient {
     }
 
     public init(host: String, port: Int) {
+        self.host = host
+        self.port = port
         connection = WebSocketConnection(host: host, port: port)
     }
 
     // Test-only initializer for dependency injection
     init(connection: any WebSocketConnectionProtocol) {
+        self.host = "localhost"
+        self.port = 8095
         self.connection = connection
     }
 
@@ -277,5 +285,43 @@ public actor MusicAssistantClient {
                 "position": position,
             ]
         )
+    }
+
+    // MARK: - Built-in Player Commands
+
+    public func registerBuiltinPlayer(playerName: String, playerId: String? = nil) async throws -> AnyCodable? {
+        try await sendCommand(
+            command: "builtin_player/register",
+            args: [
+                "player_name": playerName,
+                "player_id": playerId as Any,
+            ]
+        )
+    }
+
+    public func unregisterBuiltinPlayer(playerId: String) async throws -> AnyCodable? {
+        try await sendCommand(
+            command: "builtin_player/unregister",
+            args: ["player_id": playerId]
+        )
+    }
+
+    public func updateBuiltinPlayerState(playerId: String, state: BuiltinPlayerState) async throws -> Bool {
+        let result = try await sendCommand(
+            command: "builtin_player/update_state",
+            args: [
+                "player_id": playerId,
+                "state": [
+                    "powered": state.powered,
+                    "playing": state.playing,
+                    "paused": state.paused,
+                    "position": state.position,
+                    "volume": state.volume,
+                    "muted": state.muted,
+                ],
+            ]
+        )
+
+        return result?.value as? Bool ?? false
     }
 }
