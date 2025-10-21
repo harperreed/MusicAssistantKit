@@ -282,14 +282,22 @@ public actor MusicAssistantClient {
     // MARK: - Streaming Commands (Resonate Protocol Support)
 
     /// Get streaming URL for a media item
+    ///
+    /// ⚠️ **EXPERIMENTAL**: Resonate protocol is in active development.
+    /// API endpoints may change. Verify against your Music Assistant version.
+    ///
     /// - Parameters:
     ///   - mediaItemId: The ID of the media item to stream
     ///   - preferredProtocol: Preferred streaming protocol (defaults to .resonate)
     /// - Returns: StreamingInfo with URL and format details
+    /// - Throws: MusicAssistantError if command fails or response is invalid
+    /// - Warning: API endpoint is speculative and needs verification against actual Music Assistant implementation
     public func getStreamURL(
         mediaItemId: String,
         preferredProtocol: StreamProtocol = .resonate
     ) async throws -> StreamingInfo? {
+        // TODO: VERIFY - This endpoint is speculative as Resonate protocol is experimental
+        // Check actual Music Assistant API documentation when available
         let result = try await sendCommand(
             command: "music/get_stream_url",
             args: [
@@ -298,31 +306,60 @@ public actor MusicAssistantClient {
             ]
         )
 
-        guard let result else { return nil }
-
-        // Parse the result into StreamingInfo
-        let data = try JSONSerialization.data(withJSONObject: result.value)
-        let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        return try decoder.decode(StreamingInfo.self, from: data)
+        return try parseStreamingInfo(from: result)
     }
 
     /// Get Resonate streaming information for a queue
+    ///
+    /// ⚠️ **EXPERIMENTAL**: Resonate protocol is in active development.
+    /// API endpoints may change. Verify against your Music Assistant version.
+    ///
     /// This is used for synchronized multi-room audio playback
     /// - Parameter queueId: The queue/player ID to get Resonate stream for
     /// - Returns: StreamingInfo configured for Resonate protocol
+    /// - Throws: MusicAssistantError if command fails or response is invalid
+    /// - Warning: API endpoint is speculative and needs verification against actual Music Assistant implementation
     public func getResonateStream(queueId: String) async throws -> StreamingInfo? {
+        // TODO: VERIFY - This endpoint is speculative as Resonate protocol is experimental
+        // Check actual Music Assistant API documentation when available
         let result = try await sendCommand(
             command: "player_queues/get_resonate_stream",
             args: ["queue_id": queueId]
         )
 
+        return try parseStreamingInfo(from: result)
+    }
+
+    /// Parse streaming information from command result
+    /// - Parameter result: The AnyCodable result from a streaming command
+    /// - Returns: StreamingInfo if parsing succeeds, nil if result is nil
+    /// - Throws: MusicAssistantError.invalidResponse if data is not a dictionary,
+    ///           or MusicAssistantError.decodingFailed if decoding fails
+    private func parseStreamingInfo(from result: AnyCodable?) throws -> StreamingInfo? {
         guard let result else { return nil }
 
-        let data = try JSONSerialization.data(withJSONObject: result.value)
+        // Validate that result is a dictionary
+        guard let dict = result.value as? [String: Any] else {
+            throw MusicAssistantError.invalidResponse
+        }
+
+        // Convert to JSON data for decoding
+        let data: Data
+        do {
+            data = try JSONSerialization.data(withJSONObject: dict)
+        } catch {
+            throw MusicAssistantError.invalidResponse
+        }
+
+        // Decode to StreamingInfo
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        return try decoder.decode(StreamingInfo.self, from: data)
+
+        do {
+            return try decoder.decode(StreamingInfo.self, from: data)
+        } catch {
+            throw MusicAssistantError.decodingFailed(error)
+        }
     }
 
     /// Check if the server supports Resonate protocol

@@ -161,4 +161,131 @@ final class StreamingCommandsTests: XCTestCase {
         XCTAssertEqual(result?.protocol, .http)
         XCTAssertEqual(result?.format.codec, "mp3")
     }
+
+    // MARK: - Error Handling Tests
+
+    func testGetStreamURL_whenServerReturnsError() async throws {
+        let mock = MockWebSocketConnection()
+        let client = MusicAssistantClient(connection: mock)
+        try await client.connect()
+
+        // Simulate server error
+        Task {
+            try await Task.sleep(nanoseconds: 100_000_000)
+            if let cmd = await mock.getLastCommand() {
+                await mock.simulateError(
+                    messageId: cmd.messageId,
+                    error: "Media item not found",
+                    code: 404
+                )
+            }
+        }
+
+        do {
+            _ = try await client.getStreamURL(mediaItemId: "invalid_track", preferredProtocol: .resonate)
+            XCTFail("Should have thrown error")
+        } catch let error as MusicAssistantError {
+            if case let .serverError(code, message, _) = error {
+                XCTAssertEqual(code, 404)
+                XCTAssertEqual(message, "Media item not found")
+            } else {
+                XCTFail("Wrong error type: \(error)")
+            }
+        }
+    }
+
+    func testGetStreamURL_whenInvalidResponse() async throws {
+        let mock = MockWebSocketConnection()
+        let client = MusicAssistantClient(connection: mock)
+        try await client.connect()
+
+        // Simulate invalid response (string instead of dictionary)
+        Task {
+            try await Task.sleep(nanoseconds: 100_000_000)
+            if let cmd = await mock.getLastCommand() {
+                await mock.simulateResult(
+                    messageId: cmd.messageId,
+                    result: AnyCodable("just_a_string")
+                )
+            }
+        }
+
+        do {
+            _ = try await client.getStreamURL(mediaItemId: "track_123")
+            XCTFail("Should have thrown invalidResponse error")
+        } catch MusicAssistantError.invalidResponse {
+            // Expected error
+        } catch {
+            XCTFail("Wrong error type: \(error)")
+        }
+    }
+
+    func testGetStreamURL_whenMalformedJSON() async throws {
+        let mock = MockWebSocketConnection()
+        let client = MusicAssistantClient(connection: mock)
+        try await client.connect()
+
+        // Simulate malformed JSON (missing required fields)
+        Task {
+            try await Task.sleep(nanoseconds: 100_000_000)
+            if let cmd = await mock.getLastCommand() {
+                // Missing required 'url' field
+                let malformed = ["protocol": "resonate", "format": ["codec": "flac"]]
+                await mock.simulateResult(messageId: cmd.messageId, result: AnyCodable(malformed))
+            }
+        }
+
+        do {
+            _ = try await client.getStreamURL(mediaItemId: "track_123")
+            XCTFail("Should have thrown decodingFailed error")
+        } catch MusicAssistantError.decodingFailed {
+            // Expected error
+        } catch {
+            XCTFail("Wrong error type: \(error)")
+        }
+    }
+
+    func testGetResonateStream_whenServerReturnsNull() async throws {
+        let mock = MockWebSocketConnection()
+        let client = MusicAssistantClient(connection: mock)
+        try await client.connect()
+
+        // Simulate null response (queue not found)
+        Task {
+            try await Task.sleep(nanoseconds: 100_000_000)
+            if let cmd = await mock.getLastCommand() {
+                await mock.simulateResult(messageId: cmd.messageId, result: nil)
+            }
+        }
+
+        let result = try await client.getResonateStream(queueId: "nonexistent_queue")
+        XCTAssertNil(result)
+    }
+
+    func testGetResonateStream_whenInvalidDictionary() async throws {
+        let mock = MockWebSocketConnection()
+        let client = MusicAssistantClient(connection: mock)
+        try await client.connect()
+
+        // Simulate response with wrong types
+        Task {
+            try await Task.sleep(nanoseconds: 100_000_000)
+            if let cmd = await mock.getLastCommand() {
+                let invalid = [
+                    "url": 12345, // Wrong type - should be string
+                    "protocol": "resonate",
+                ] as [String: Any]
+                await mock.simulateResult(messageId: cmd.messageId, result: AnyCodable(invalid))
+            }
+        }
+
+        do {
+            _ = try await client.getResonateStream(queueId: "queue_123")
+            XCTFail("Should have thrown decodingFailed error")
+        } catch MusicAssistantError.decodingFailed {
+            // Expected error
+        } catch {
+            XCTFail("Wrong error type: \(error)")
+        }
+    }
 }

@@ -43,6 +43,15 @@ public struct StreamingInfo: Codable, Sendable {
         supportsSeek: Bool = true,
         isLive: Bool = false
     ) {
+        // Validate URL format
+        precondition(!url.isEmpty, "URL cannot be empty")
+        precondition(URL(string: url) != nil, "Invalid URL format: \(url)")
+
+        // Validate duration is non-negative
+        if let duration {
+            precondition(duration >= 0, "Duration cannot be negative: \(duration)")
+        }
+
         self.url = url
         self.protocol = `protocol`
         self.format = format
