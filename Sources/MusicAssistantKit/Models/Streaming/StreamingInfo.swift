@@ -9,7 +9,7 @@ public struct StreamingInfo: Codable, Sendable {
     public let url: String
 
     /// The streaming protocol
-    public let protocol: StreamProtocol
+    public let `protocol`: StreamProtocol
 
     /// Audio format information
     public let format: AudioFormat
