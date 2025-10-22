@@ -10,7 +10,7 @@ struct MAPlayerSimple {
         let host = ProcessInfo.processInfo.environment["MA_HOST"] ?? "localhost"
         let port = Int(ProcessInfo.processInfo.environment["MA_PORT"] ?? "8095") ?? 8095
 
-        guard CommandLine.arguments.count >= 2 else {
+        guard CommandLine.arguments.count >= 3 else {
             print("Usage: ma-player-simple <queue_id> <uri>")
             print("Example: ma-player-simple ma_abc123 library://radio/15")
             exit(1)
