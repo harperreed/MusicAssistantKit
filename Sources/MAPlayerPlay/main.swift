@@ -79,12 +79,12 @@ enum MAPlayerError: Error {
                             queueId: playerId,
                             uri: url
                         )
-                        return (true, response)  // Success with actual response
+                        return (true, response) // Success with actual response
                     }
 
                     group.addTask {
                         try await Task.sleep(for: .seconds(10))
-                        return (false, nil)  // Timeout
+                        return (false, nil) // Timeout
                     }
 
                     guard let (isSuccess, response) = try await group.next() else {

@@ -29,13 +29,13 @@ public struct BuiltinPlayerEvent: Sendable {
 
     public init(from data: [String: AnyCodable]) throws {
         guard let typeString = data["type"]?.value as? String,
-              let type = BuiltinPlayerEventType(rawValue: typeString)
+              let eventType = BuiltinPlayerEventType(rawValue: typeString)
         else {
             throw MusicAssistantError.invalidResponse
         }
 
-        self.type = type
-        self.mediaUrl = data["media_url"]?.value as? String
-        self.volume = data["volume"]?.value as? Double
+        type = eventType
+        mediaUrl = data["media_url"]?.value as? String
+        volume = data["volume"]?.value as? Double
     }
 }

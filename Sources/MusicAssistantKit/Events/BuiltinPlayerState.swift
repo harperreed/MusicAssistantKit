@@ -7,8 +7,8 @@ public struct BuiltinPlayerState: Codable, Sendable {
     public let powered: Bool
     public let playing: Bool
     public let paused: Bool
-    public let position: Double  // Position in seconds
-    public let volume: Double    // Volume level 0-100
+    public let position: Double // Position in seconds
+    public let volume: Double // Volume level 0-100
     public let muted: Bool
 
     public init(

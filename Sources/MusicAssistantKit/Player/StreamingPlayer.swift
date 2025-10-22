@@ -239,8 +239,8 @@ public actor StreamingPlayer {
 
     private nonisolated func configureAudioSession() {
         #if os(macOS)
-            // macOS doesn't need audio session configuration like iOS
-            // AVPlayer should automatically route to default output
+        // macOS doesn't need audio session configuration like iOS
+        // AVPlayer should automatically route to default output
         #elseif os(iOS)
             do {
                 let session = AVAudioSession.sharedInstance()
