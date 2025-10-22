@@ -75,11 +75,11 @@ enum MAPlayerError: Error {
 
                 let result = try await withThrowingTaskGroup(of: (Bool, AnyCodable?).self) { group in
                     group.addTask {
-                        _ = try await client.playMedia(
+                        let response = try await client.playMedia(
                             queueId: playerId,
                             uri: url
                         )
-                        return (true, nil)  // Success
+                        return (true, response)  // Success with actual response
                     }
 
                     group.addTask {
@@ -87,7 +87,7 @@ enum MAPlayerError: Error {
                         return (false, nil)  // Timeout
                     }
 
-                    guard let (isSuccess, result) = try await group.next() else {
+                    guard let (isSuccess, response) = try await group.next() else {
                         throw MAPlayerError.timeout
                     }
 
@@ -97,7 +97,7 @@ enum MAPlayerError: Error {
                         throw MAPlayerError.timeout
                     }
 
-                    return result
+                    return response
                 }
 
                 print("✓ Play command sent successfully")
