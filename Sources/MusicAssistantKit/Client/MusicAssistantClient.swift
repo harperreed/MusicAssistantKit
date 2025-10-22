@@ -8,6 +8,7 @@ public actor MusicAssistantClient {
     private let connection: any WebSocketConnectionProtocol
     private var nextMessageId: Int = 1
     private var pendingCommands: [Int: CheckedContinuation<AnyCodable?, Error>] = [:]
+    private var timeoutTasks: [Int: Task<Void, Never>] = [:]
     public let events = EventPublisher()
 
     // Server connection info
@@ -52,6 +53,12 @@ public actor MusicAssistantClient {
             continuation.resume(throwing: MusicAssistantError.notConnected)
         }
         pendingCommands.removeAll()
+
+        // Cancel all outstanding timeouts
+        for (_, task) in timeoutTasks {
+            task.cancel()
+        }
+        timeoutTasks.removeAll()
     }
 
     private func generateMessageId() -> Int {
@@ -70,10 +77,12 @@ public actor MusicAssistantClient {
         switch envelope {
         case let .result(result):
             if let continuation = pendingCommands.removeValue(forKey: result.messageId) {
+                timeoutTasks.removeValue(forKey: result.messageId)?.cancel()
                 continuation.resume(returning: result.result)
             }
         case let .error(error):
             if let continuation = pendingCommands.removeValue(forKey: error.messageId) {
+                timeoutTasks.removeValue(forKey: error.messageId)?.cancel()
                 let maError = MusicAssistantError.serverError(
                     code: error.errorCode,
                     message: error.error,
@@ -104,9 +113,9 @@ public actor MusicAssistantClient {
             pendingCommands[messageId] = continuation
 
             Task {
-                // Start timeout task first
-                let timeoutTask = Task { [weak self] in
-                    try await Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
+                // Start timeout task and store it
+                timeoutTasks[messageId] = Task { [weak self] in
+                    try? await Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
                     await self?.timeoutCommand(messageId: messageId)
                 }
 
@@ -114,7 +123,7 @@ public actor MusicAssistantClient {
                     try await connection.send(cmd)
                 } catch {
                     // Cancel timeout and resume with error
-                    timeoutTask.cancel()
+                    timeoutTasks.removeValue(forKey: messageId)?.cancel()
                     if let pending = pendingCommands.removeValue(forKey: messageId) {
                         pending.resume(throwing: error)
                     }

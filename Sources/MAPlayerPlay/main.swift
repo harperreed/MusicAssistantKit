@@ -20,10 +20,10 @@ enum MAPlayerError: Error {
             }
 
             let url = args[1]
-            var duration: TimeInterval = 30.0  // Default: play for 30 seconds
+            var duration: TimeInterval = 30.0 // Default: play for 30 seconds
 
             // Parse optional --duration flag
-            if args.count >= 4 && args[2] == "--duration" {
+            if args.count >= 4, args[2] == "--duration" {
                 if let d = TimeInterval(args[3]) {
                     duration = d
                 }
