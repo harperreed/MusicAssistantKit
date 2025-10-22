@@ -8,6 +8,7 @@ A robust, lightweight Swift library for controlling [Music Assistant](https://mu
 - **Hybrid API** - async/await for commands, Combine for event streams
 - **Automatic reconnection** - Exponential backoff (1s to 60s)
 - **Core functionality** - Play control, search, queue management
+- **Streaming player** - Built-in player using AVFoundation for direct audio streaming
 - **TDD approach** - Comprehensive test coverage against real server
 
 ## Requirements
@@ -109,6 +110,50 @@ client.events.queueUpdates
         print("Queue: \(event.queueId), Data: \(event.data)")
     }
     .store(in: &cancellables)
+```
+
+### Streaming Player
+
+Create a built-in player that streams audio directly to your device:
+
+```swift
+import MusicAssistantKit
+
+// Create client and connect
+let client = MusicAssistantClient(host: "localhost", port: 8095)
+try await client.connect()
+
+// Create and register streaming player
+let player = StreamingPlayer(client: client, playerName: "My Streaming Player")
+try await player.register()
+
+// Player now appears in Music Assistant and can be controlled from the web interface
+// Audio will stream from http://host:port/builtin_player/flow/{player_id}.mp3
+
+// When done, unregister
+try await player.unregister()
+await client.disconnect()
+```
+
+The streaming player:
+- Registers as a built-in player with Music Assistant
+- Streams audio using AVFoundation (macOS/iOS only)
+- Sends state updates every 30 seconds
+- Responds to play/pause/stop/volume commands from the server
+- Automatically handles audio session configuration
+
+See [STREAMING.md](STREAMING.md) for detailed documentation.
+
+**CLI Tools:**
+```bash
+# Simple player demo
+MA_HOST=localhost MA_PORT=8095 swift run ma-player
+
+# Interactive player with real-time status
+MA_HOST=localhost MA_PORT=8095 swift run ma-player-interactive
+
+# Play a URL directly
+MA_HOST=localhost swift run ma-player-play "library://track/123"
 ```
 
 ## Error Handling
