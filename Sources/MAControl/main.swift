@@ -145,15 +145,15 @@ struct MusicControl {
         case let .play(playerId):
             print("🎵 Playing \(playerId)...")
             try await client.play(playerId: playerId)
-            print("▶️  Playing")
+            print("▶️ Playing")
         case let .pause(playerId):
             print("🎵 Pausing \(playerId)...")
             try await client.pause(playerId: playerId)
-            print("⏸️  Paused")
+            print("⏸️ Paused")
         case let .stop(playerId):
             print("🎵 Stopping \(playerId)...")
             try await client.stop(playerId: playerId)
-            print("⏹️  Stopped")
+            print("⏹️ Stopped")
         case let .seek(queueId, position):
             print("🎵 Seeking \(queueId) to \(position)s...")
             try await client.seek(queueId: queueId, position: position)

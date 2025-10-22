@@ -5,44 +5,58 @@
 import Foundation
 
 // Note: EventPublisher is @unchecked Sendable because PassthroughSubject doesn't conform to Sendable in older Combine
-// versions
-// The class is immutable after init and PassthroughSubject is thread-safe
+// versions. The class is immutable after init and all send() calls are dispatched to MainActor for thread safety.
 public final class EventPublisher: @unchecked Sendable {
     public let playerUpdates = PassthroughSubject<PlayerUpdateEvent, Never>()
     public let queueUpdates = PassthroughSubject<QueueUpdateEvent, Never>()
+    public let builtinPlayerEvents = PassthroughSubject<(String, BuiltinPlayerEvent), Never>()
     public let rawEvents = PassthroughSubject<Event, Never>()
 
     public init() {}
 
-    public func publish(_ event: Event) {
-        // Always publish raw event
-        rawEvents.send(event)
+    public func publish(_ event: Event) async {
+        // Dispatch all Combine send() calls to MainActor to avoid actor isolation crashes
+        await MainActor.run {
+            // Always publish raw event
+            rawEvents.send(event)
 
-        // Route to specific subjects based on event type
-        switch event.event {
-        case "player_updated":
-            if let objectId = event.objectId,
-               let dataWrapper = event.data,
-               let dataDict = dataWrapper.value as? [String: Any] {
-                // Convert [String: Any] to [String: AnyCodable]
-                let anyCodableDict = dataDict.mapValues { AnyCodable($0) }
-                let playerEvent = PlayerUpdateEvent(playerId: objectId, data: anyCodableDict)
-                playerUpdates.send(playerEvent)
+            // Route to specific subjects based on event type
+            switch event.event {
+            case "player_updated":
+                if let objectId = event.objectId,
+                   let dataWrapper = event.data,
+                   let dataDict = dataWrapper.value as? [String: Any] {
+                    // Convert [String: Any] to [String: AnyCodable]
+                    let anyCodableDict = dataDict.mapValues { AnyCodable($0) }
+                    let playerEvent = PlayerUpdateEvent(playerId: objectId, data: anyCodableDict)
+                    playerUpdates.send(playerEvent)
+                }
+
+            case "queue_updated", "queue_items_updated":
+                if let objectId = event.objectId,
+                   let dataWrapper = event.data,
+                   let dataDict = dataWrapper.value as? [String: Any] {
+                    // Convert [String: Any] to [String: AnyCodable]
+                    let anyCodableDict = dataDict.mapValues { AnyCodable($0) }
+                    let queueEvent = QueueUpdateEvent(queueId: objectId, data: anyCodableDict)
+                    queueUpdates.send(queueEvent)
+                }
+
+            case "builtin_player":
+                if let playerId = event.objectId,
+                   let dataWrapper = event.data,
+                   let dataDict = dataWrapper.value as? [String: Any] {
+                    // Convert [String: Any] to [String: AnyCodable]
+                    let anyCodableDict = dataDict.mapValues { AnyCodable($0) }
+                    if let builtinEvent = try? BuiltinPlayerEvent(from: anyCodableDict) {
+                        builtinPlayerEvents.send((playerId, builtinEvent))
+                    }
+                }
+
+            default:
+                // Other events are only published as raw events
+                break
             }
-
-        case "queue_updated", "queue_items_updated":
-            if let objectId = event.objectId,
-               let dataWrapper = event.data,
-               let dataDict = dataWrapper.value as? [String: Any] {
-                // Convert [String: Any] to [String: AnyCodable]
-                let anyCodableDict = dataDict.mapValues { AnyCodable($0) }
-                let queueEvent = QueueUpdateEvent(queueId: objectId, data: anyCodableDict)
-                queueUpdates.send(queueEvent)
-            }
-
-        default:
-            // Other events are only published as raw events
-            break
         }
     }
 }

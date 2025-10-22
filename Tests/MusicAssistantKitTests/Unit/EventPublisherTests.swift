@@ -23,10 +23,8 @@ struct EventPublisherTests {
             data: AnyCodable(["state": "playing", "volume": 75])
         )
 
-        publisher.publish(event)
-
-        // Give Combine a moment to process
-        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+        await publisher.publish(event)
+        await Task.yield() // Allow MainActor to process
 
         #expect(receivedEvents.count == 1)
         #expect(receivedEvents[0].playerId == "player-123")
@@ -49,9 +47,8 @@ struct EventPublisherTests {
             data: AnyCodable(["shuffle": true])
         )
 
-        publisher.publish(event)
-
-        try? await Task.sleep(nanoseconds: 100_000_000)
+        await publisher.publish(event)
+        await Task.yield() // Allow MainActor to process
 
         #expect(receivedEvents.count == 1)
         #expect(receivedEvents[0].queueId == "queue-456")
@@ -74,9 +71,8 @@ struct EventPublisherTests {
             data: AnyCodable(["items": []])
         )
 
-        publisher.publish(event)
-
-        try? await Task.sleep(nanoseconds: 100_000_000)
+        await publisher.publish(event)
+        await Task.yield() // Allow MainActor to process
 
         #expect(receivedEvents.count == 1)
         #expect(receivedEvents[0].queueId == "queue-789")
@@ -94,11 +90,10 @@ struct EventPublisherTests {
         }
 
         // Publish different event types
-        publisher.publish(Event(event: "player_updated", objectId: "p1", data: nil))
-        publisher.publish(Event(event: "queue_updated", objectId: "q1", data: nil))
-        publisher.publish(Event(event: "unknown_event", objectId: nil, data: nil))
-
-        try? await Task.sleep(nanoseconds: 100_000_000)
+        await publisher.publish(Event(event: "player_updated", objectId: "p1", data: nil))
+        await publisher.publish(Event(event: "queue_updated", objectId: "q1", data: nil))
+        await publisher.publish(Event(event: "unknown_event", objectId: nil, data: nil))
+        await Task.yield() // Allow MainActor to process
 
         #expect(receivedEvents.count == 3)
         #expect(receivedEvents[0].event == "player_updated")
@@ -118,9 +113,8 @@ struct EventPublisherTests {
         let queueCancellable = publisher.queueUpdates.sink { queueEvents.append($0) }
 
         let event = Event(event: "unknown_event", objectId: "test", data: nil)
-        publisher.publish(event)
-
-        try? await Task.sleep(nanoseconds: 100_000_000)
+        await publisher.publish(event)
+        await Task.yield() // Allow MainActor to process
 
         #expect(playerEvents.isEmpty)
         #expect(queueEvents.isEmpty)
@@ -139,9 +133,8 @@ struct EventPublisherTests {
         }
 
         let event = Event(event: "server_status", objectId: nil, data: nil)
-        publisher.publish(event)
-
-        try? await Task.sleep(nanoseconds: 100_000_000)
+        await publisher.publish(event)
+        await Task.yield() // Allow MainActor to process
 
         #expect(receivedRawEvents.count == 1)
         #expect(receivedRawEvents[0].event == "server_status")

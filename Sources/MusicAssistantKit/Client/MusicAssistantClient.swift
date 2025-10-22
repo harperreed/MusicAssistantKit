@@ -8,7 +8,12 @@ public actor MusicAssistantClient {
     private let connection: any WebSocketConnectionProtocol
     private var nextMessageId: Int = 1
     private var pendingCommands: [Int: CheckedContinuation<AnyCodable?, Error>] = [:]
+    private var timeoutTasks: [Int: Task<Void, Never>] = [:]
     public let events = EventPublisher()
+
+    // Server connection info
+    public let host: String
+    public let port: Int
 
     public var isConnected: Bool {
         get async {
@@ -17,11 +22,15 @@ public actor MusicAssistantClient {
     }
 
     public init(host: String, port: Int) {
+        self.host = host
+        self.port = port
         connection = WebSocketConnection(host: host, port: port)
     }
 
     // Test-only initializer for dependency injection
     init(connection: any WebSocketConnectionProtocol) {
+        host = "localhost"
+        port = 8095
         self.connection = connection
     }
 
@@ -44,6 +53,12 @@ public actor MusicAssistantClient {
             continuation.resume(throwing: MusicAssistantError.notConnected)
         }
         pendingCommands.removeAll()
+
+        // Cancel all outstanding timeouts
+        for (_, task) in timeoutTasks {
+            task.cancel()
+        }
+        timeoutTasks.removeAll()
     }
 
     private func generateMessageId() -> Int {
@@ -58,14 +73,36 @@ public actor MusicAssistantClient {
         }
     }
 
+    private func storePendingCommand(messageId: Int, continuation: CheckedContinuation<AnyCodable?, Error>) {
+        pendingCommands[messageId] = continuation
+
+        // Start timeout task and store it
+        timeoutTasks[messageId] = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
+            await self?.timeoutCommand(messageId: messageId)
+        }
+    }
+
+    private func cancelPendingCommand(messageId: Int, error: Error) {
+        // Cancel timeout
+        timeoutTasks.removeValue(forKey: messageId)?.cancel()
+
+        // Resume continuation with error
+        if let pending = pendingCommands.removeValue(forKey: messageId) {
+            pending.resume(throwing: error)
+        }
+    }
+
     private func handleMessage(_ envelope: MessageEnvelope) async {
         switch envelope {
         case let .result(result):
             if let continuation = pendingCommands.removeValue(forKey: result.messageId) {
+                timeoutTasks.removeValue(forKey: result.messageId)?.cancel()
                 continuation.resume(returning: result.result)
             }
         case let .error(error):
             if let continuation = pendingCommands.removeValue(forKey: error.messageId) {
+                timeoutTasks.removeValue(forKey: error.messageId)?.cancel()
                 let maError = MusicAssistantError.serverError(
                     code: error.errorCode,
                     message: error.error,
@@ -74,7 +111,7 @@ public actor MusicAssistantClient {
                 continuation.resume(throwing: maError)
             }
         case let .event(event):
-            events.publish(event)
+            await events.publish(event)
         case .serverInfo, .unknown:
             break
         }
@@ -93,23 +130,15 @@ public actor MusicAssistantClient {
         let cmd = Command(messageId: messageId, command: command, args: anyCodableArgs)
 
         return try await withCheckedThrowingContinuation { continuation in
-            pendingCommands[messageId] = continuation
+            // Store continuation and start timeout
+            storePendingCommand(messageId: messageId, continuation: continuation)
 
             Task {
-                // Start timeout task first
-                let timeoutTask = Task { [weak self] in
-                    try await Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
-                    await self?.timeoutCommand(messageId: messageId)
-                }
-
                 do {
                     try await connection.send(cmd)
                 } catch {
-                    // Cancel timeout and resume with error
-                    timeoutTask.cancel()
-                    if let pending = pendingCommands.removeValue(forKey: messageId) {
-                        pending.resume(throwing: error)
-                    }
+                    // Cancel timeout and resume with error - must be done on actor
+                    await cancelPendingCommand(messageId: messageId, error: error)
                 }
             }
         }
@@ -235,7 +264,7 @@ public actor MusicAssistantClient {
             command: "player_queues/play_media",
             args: [
                 "queue_id": queueId,
-                "uri": uri,
+                "media": uri,
                 "option": option,
                 "radio_mode": radioMode,
             ]
@@ -277,5 +306,44 @@ public actor MusicAssistantClient {
                 "position": position,
             ]
         )
+    }
+
+    // MARK: - Built-in Player Commands
+
+    public func registerBuiltinPlayer(playerName: String, playerId: String? = nil) async throws -> AnyCodable? {
+        var args: [String: Any] = ["player_name": playerName]
+        if let playerId {
+            args["player_id"] = playerId
+        }
+        return try await sendCommand(
+            command: "builtin_player/register",
+            args: args
+        )
+    }
+
+    public func unregisterBuiltinPlayer(playerId: String) async throws -> AnyCodable? {
+        try await sendCommand(
+            command: "builtin_player/unregister",
+            args: ["player_id": playerId]
+        )
+    }
+
+    public func updateBuiltinPlayerState(playerId: String, state: BuiltinPlayerState) async throws -> Bool {
+        let result = try await sendCommand(
+            command: "builtin_player/update_state",
+            args: [
+                "player_id": playerId,
+                "state": [
+                    "powered": state.powered,
+                    "playing": state.playing,
+                    "paused": state.paused,
+                    "position": state.position,
+                    "volume": state.volume,
+                    "muted": state.muted,
+                ],
+            ]
+        )
+
+        return result?.value as? Bool ?? false
     }
 }

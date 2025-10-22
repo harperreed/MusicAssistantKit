@@ -30,6 +30,26 @@ let package = Package(
             name: "ma-status",
             targets: ["MAStatus"]
         ),
+        .executable(
+            name: "ma-player",
+            targets: ["MAPlayer"]
+        ),
+        .executable(
+            name: "ma-player-interactive",
+            targets: ["MAPlayerInteractive"]
+        ),
+        .executable(
+            name: "ma-player-debug",
+            targets: ["MAPlayerDebug"]
+        ),
+        .executable(
+            name: "ma-player-play",
+            targets: ["MAPlayerPlay"]
+        ),
+        .executable(
+            name: "ma-player-simple",
+            targets: ["MAPlayerSimple"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-testing.git", from: "0.10.0"),
@@ -52,6 +72,26 @@ let package = Package(
         ),
         .executableTarget(
             name: "MAStatus",
+            dependencies: ["MusicAssistantKit"]
+        ),
+        .executableTarget(
+            name: "MAPlayer",
+            dependencies: ["MusicAssistantKit"]
+        ),
+        .executableTarget(
+            name: "MAPlayerInteractive",
+            dependencies: ["MusicAssistantKit"]
+        ),
+        .executableTarget(
+            name: "MAPlayerDebug",
+            dependencies: ["MusicAssistantKit"]
+        ),
+        .executableTarget(
+            name: "MAPlayerPlay",
+            dependencies: ["MusicAssistantKit"]
+        ),
+        .executableTarget(
+            name: "MAPlayerSimple",
             dependencies: ["MusicAssistantKit"]
         ),
         .testTarget(
