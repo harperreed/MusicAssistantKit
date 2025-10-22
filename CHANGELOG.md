@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.2.1] - 2025-10-22
+
+### Fixed
+- Resolved SwiftLint CI failures for code quality compliance
+- Resolved SwiftFormat CI failures for consistent code formatting
+
 ## [0.2.0] - 2025-10-22
 
 ### Added
