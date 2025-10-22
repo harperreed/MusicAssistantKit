@@ -33,22 +33,29 @@ import MusicAssistantKit
                 print("You can control it from the Music Assistant web interface.")
                 print("\nPress Ctrl+C to stop and unregister.\n")
 
-                // Keep running until interrupted
-                try await withTaskCancellationHandler {
-                    try await Task.sleep(for: .seconds(3600))  // 1 hour
-                } onCancel: {
-                    Task {
-                        print("\nShutting down...")
-                        try? await player.unregister()
-                        await client.disconnect()
-                        print("✓ Player unregistered and disconnected")
+                // Set up signal handling and wait for Ctrl+C
+                let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
+
+                await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+                    sigintSrc.setEventHandler {
+                        continuation.resume()
                     }
+                    sigintSrc.resume()
+                    signal(SIGINT, SIG_IGN)
                 }
+
+                // Signal source stays alive until here
+                sigintSrc.cancel()
+
+                // Cleanup
+                print("\nShutting down...")
+                try? await player.unregister()
+                await client.disconnect()
+                print("✓ Player unregistered and disconnected")
             } else {
                 print("✗ Failed to get player ID")
+                await client.disconnect()
             }
-
-            await client.disconnect()
         }
     }
 #else
