@@ -24,9 +24,7 @@ struct EventPublisherTests {
         )
 
         await publisher.publish(event)
-
-        // Give Combine a moment to process
-        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+        await Task.yield() // Allow MainActor to process
 
         #expect(receivedEvents.count == 1)
         #expect(receivedEvents[0].playerId == "player-123")
@@ -50,8 +48,7 @@ struct EventPublisherTests {
         )
 
         await publisher.publish(event)
-
-        try? await Task.sleep(nanoseconds: 100_000_000)
+        await Task.yield() // Allow MainActor to process
 
         #expect(receivedEvents.count == 1)
         #expect(receivedEvents[0].queueId == "queue-456")
@@ -75,8 +72,7 @@ struct EventPublisherTests {
         )
 
         await publisher.publish(event)
-
-        try? await Task.sleep(nanoseconds: 100_000_000)
+        await Task.yield() // Allow MainActor to process
 
         #expect(receivedEvents.count == 1)
         #expect(receivedEvents[0].queueId == "queue-789")
@@ -97,8 +93,7 @@ struct EventPublisherTests {
         await publisher.publish(Event(event: "player_updated", objectId: "p1", data: nil))
         await publisher.publish(Event(event: "queue_updated", objectId: "q1", data: nil))
         await publisher.publish(Event(event: "unknown_event", objectId: nil, data: nil))
-
-        try? await Task.sleep(nanoseconds: 100_000_000)
+        await Task.yield() // Allow MainActor to process
 
         #expect(receivedEvents.count == 3)
         #expect(receivedEvents[0].event == "player_updated")
@@ -119,8 +114,7 @@ struct EventPublisherTests {
 
         let event = Event(event: "unknown_event", objectId: "test", data: nil)
         await publisher.publish(event)
-
-        try? await Task.sleep(nanoseconds: 100_000_000)
+        await Task.yield() // Allow MainActor to process
 
         #expect(playerEvents.isEmpty)
         #expect(queueEvents.isEmpty)
@@ -140,8 +134,7 @@ struct EventPublisherTests {
 
         let event = Event(event: "server_status", objectId: nil, data: nil)
         await publisher.publish(event)
-
-        try? await Task.sleep(nanoseconds: 100_000_000)
+        await Task.yield() // Allow MainActor to process
 
         #expect(receivedRawEvents.count == 1)
         #expect(receivedRawEvents[0].event == "server_status")
