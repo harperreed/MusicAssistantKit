@@ -73,6 +73,26 @@ public actor MusicAssistantClient {
         }
     }
 
+    private func storePendingCommand(messageId: Int, continuation: CheckedContinuation<AnyCodable?, Error>) {
+        pendingCommands[messageId] = continuation
+
+        // Start timeout task and store it
+        timeoutTasks[messageId] = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
+            await self?.timeoutCommand(messageId: messageId)
+        }
+    }
+
+    private func cancelPendingCommand(messageId: Int, error: Error) {
+        // Cancel timeout
+        timeoutTasks.removeValue(forKey: messageId)?.cancel()
+
+        // Resume continuation with error
+        if let pending = pendingCommands.removeValue(forKey: messageId) {
+            pending.resume(throwing: error)
+        }
+    }
+
     private func handleMessage(_ envelope: MessageEnvelope) async {
         switch envelope {
         case let .result(result):
@@ -109,24 +129,23 @@ public actor MusicAssistantClient {
 
         let cmd = Command(messageId: messageId, command: command, args: anyCodableArgs)
 
-        return try await withCheckedThrowingContinuation { continuation in
-            pendingCommands[messageId] = continuation
+        return try await withCheckedThrowingContinuation { [weak self] continuation in
+            guard let self else {
+                continuation.resume(throwing: MusicAssistantError.notConnected)
+                return
+            }
 
-            Task {
-                // Start timeout task and store it
-                timeoutTasks[messageId] = Task { [weak self] in
-                    try? await Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
-                    await self?.timeoutCommand(messageId: messageId)
-                }
+            Task { [weak self] in
+                guard let self else { return }
+
+                // Store continuation and start timeout - must be done on actor
+                await self.storePendingCommand(messageId: messageId, continuation: continuation)
 
                 do {
-                    try await connection.send(cmd)
+                    try await self.connection.send(cmd)
                 } catch {
-                    // Cancel timeout and resume with error
-                    timeoutTasks.removeValue(forKey: messageId)?.cancel()
-                    if let pending = pendingCommands.removeValue(forKey: messageId) {
-                        pending.resume(throwing: error)
-                    }
+                    // Cancel timeout and resume with error - must be done on actor
+                    await self.cancelPendingCommand(messageId: messageId, error: error)
                 }
             }
         }
