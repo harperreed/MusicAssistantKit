@@ -10,6 +10,7 @@ import Foundation
 #endif
 
 @available(macOS 12.0, iOS 15.0, *)
+// swiftlint:disable type_body_length
 public actor StreamingPlayer {
     private let client: MusicAssistantClient
     private let playerName: String
@@ -85,6 +86,7 @@ public actor StreamingPlayer {
             .store(in: &cancellables)
     }
 
+    // swiftlint:disable:next cyclomatic_complexity
     private func handleEvent(playerId: String, event: BuiltinPlayerEvent) async {
         // Only handle events for this player
         guard playerId == self.playerId else { return }

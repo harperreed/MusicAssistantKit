@@ -4,6 +4,11 @@
 excluded:
   - .build
   - Tests/MusicAssistantKitTests/Mocks
+  - Sources/MAPlayer
+  - Sources/MAPlayerDebug
+  - Sources/MAPlayerInteractive
+  - Sources/MAPlayerPlay
+  - Sources/MAPlayerSimple
 
 # Rule Configuration
 opt_in_rules:
