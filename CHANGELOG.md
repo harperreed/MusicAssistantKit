@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-10-22
+
 ### Added
 - **Streaming Player Support** - Built-in player implementation using AVFoundation for direct audio streaming
   - `StreamingPlayer` actor for registering and managing built-in players
