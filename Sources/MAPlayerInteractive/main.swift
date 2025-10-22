@@ -113,11 +113,11 @@ import MusicAssistantKit
                             let stateIndicator: String
                             switch type {
                             case "PLAY":
-                                stateIndicator = "▶️  PLAYING"
+                                stateIndicator = "▶️ PLAYING"
                             case "PAUSE":
-                                stateIndicator = "⏸️  PAUSED"
+                                stateIndicator = "⏸️ PAUSED"
                             case "STOP":
-                                stateIndicator = "⏹️  STOPPED"
+                                stateIndicator = "⏹️ STOPPED"
                             case "PLAY_MEDIA":
                                 if let mediaUrl = data["media_url"] as? String {
                                     let fullUrl = "http://\(host):\(port)/\(mediaUrl)"

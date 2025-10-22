@@ -134,7 +134,7 @@ public actor StreamingPlayer {
         // Construct full URL
         guard let baseURL = await getBaseURL()
         else {
-            print("⚠️  Failed to construct base URL")
+            print("⚠️ Failed to construct base URL")
             return
         }
 
@@ -163,7 +163,7 @@ public actor StreamingPlayer {
         player?.volume = Float(volume / 100.0)
         player?.isMuted = muted
 
-        print("▶️  Starting playback (volume: \(Int(volume))%, muted: \(muted))")
+        print("▶️ Starting playback (volume: \(Int(volume))%, muted: \(muted))")
         player?.play()
 
         await sendStateUpdate()
@@ -249,7 +249,7 @@ public actor StreamingPlayer {
                 try session.setActive(true)
                 print("✓ Configured audio session for playback")
             } catch {
-                print("⚠️  Failed to configure audio session: \(error)")
+                print("⚠️ Failed to configure audio session: \(error)")
             }
         #endif
     }
@@ -271,7 +271,7 @@ public actor StreamingPlayer {
                 case .unknown:
                     print("⏳ Player item status unknown")
                 @unknown default:
-                    print("⚠️  Player item unknown status: \(status)")
+                    print("⚠️ Player item unknown status: \(status)")
                 }
             }
         }
