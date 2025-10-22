@@ -101,7 +101,7 @@ enum MAPlayerError: Error {
                 }
 
                 print("✓ Play command sent successfully")
-                if let result = result {
+                if let result {
                     print("   Response: \(String(describing: result.value))")
                 } else {
                     print("   Response: (no response)")
