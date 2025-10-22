@@ -18,6 +18,7 @@ public actor StreamingPlayer {
     private var cancellables = Set<AnyCancellable>()
     private var stateUpdateTask: Task<Void, Never>?
     private var timeObserver: Any?
+    private var playerItemObserverTask: Task<Void, Never>?
 
     // Current state
     private var powered: Bool = false
@@ -151,10 +152,13 @@ public actor StreamingPlayer {
             print("✓ Created new AVPlayer instance")
         }
 
+        // Cancel previous player item observer if it exists
+        playerItemObserverTask?.cancel()
+
         let playerItem = AVPlayerItem(url: streamURL)
 
         // Observe player item status for debugging
-        observePlayerItem(playerItem)
+        playerItemObserverTask = observePlayerItem(playerItem)
 
         player?.replaceCurrentItem(with: playerItem)
         player?.volume = Float(volume / 100.0)
@@ -191,6 +195,9 @@ public actor StreamingPlayer {
             player?.removeTimeObserver(observer)
             timeObserver = nil
         }
+        // Cancel player item observer
+        playerItemObserverTask?.cancel()
+        playerItemObserverTask = nil
         player = nil
     }
 
@@ -248,8 +255,9 @@ public actor StreamingPlayer {
         #endif
     }
 
-    private func observePlayerItem(_ item: AVPlayerItem) {
+    private func observePlayerItem(_ item: AVPlayerItem) -> Task<Void, Never> {
         // Observe status changes to debug playback issues
+        // Return the Task so it can be tracked and cancelled
         Task { @MainActor in
             for await status in item.publisher(for: \.status).values {
                 switch status {
