@@ -110,37 +110,32 @@ import MusicAssistantKit
                            let data = event.data?.value as? [String: Any],
                            let type = data["type"] as? String {
 
-                            let stateIndicator: String
-                            switch type {
+                            let stateIndicator = switch type {
                             case "PLAY":
-                                stateIndicator = "▶️ PLAYING"
+                                "▶️ PLAYING"
                             case "PAUSE":
-                                stateIndicator = "⏸️ PAUSED"
+                                "⏸️ PAUSED"
                             case "STOP":
-                                stateIndicator = "⏹️ STOPPED"
+                                "⏹️ STOPPED"
                             case "PLAY_MEDIA":
-                                if let mediaUrl = data["media_url"] as? String {
+                                (data["media_url"] as? String).map { mediaUrl in
                                     let fullUrl = "http://\(host):\(port)/\(mediaUrl)"
-                                    stateIndicator = "🎶 STREAMING:\n   URL: \(fullUrl)\n   Path: \(mediaUrl)"
-                                } else {
-                                    stateIndicator = "🎶 STREAMING"
-                                }
+                                    return "🎶 STREAMING:\n   URL: \(fullUrl)\n   Path: \(mediaUrl)"
+                                } ?? "🎶 STREAMING"
                             case "SET_VOLUME":
-                                if let volume = data["volume"] as? Double {
-                                    stateIndicator = "🔊 VOLUME: \(Int(volume))%"
-                                } else {
-                                    stateIndicator = "🔊 VOLUME"
-                                }
+                                (data["volume"] as? Double).map { volume in
+                                    "🔊 VOLUME: \(Int(volume))%"
+                                } ?? "🔊 VOLUME"
                             case "MUTE":
-                                stateIndicator = "🔇 MUTED"
+                                "🔇 MUTED"
                             case "UNMUTE":
-                                stateIndicator = "🔊 UNMUTED"
+                                "🔊 UNMUTED"
                             case "POWER_ON":
-                                stateIndicator = "⚡ POWER ON"
+                                "⚡ POWER ON"
                             case "POWER_OFF":
-                                stateIndicator = "💤 POWER OFF"
+                                "💤 POWER OFF"
                             default:
-                                stateIndicator = "📡 \(type)"
+                                "📡 \(type)"
                             }
 
                             let timestamp = DateFormatter.localizedString(
