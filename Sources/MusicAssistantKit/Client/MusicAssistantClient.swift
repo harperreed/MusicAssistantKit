@@ -28,8 +28,8 @@ public actor MusicAssistantClient {
 
     // Test-only initializer for dependency injection
     init(connection: any WebSocketConnectionProtocol) {
-        self.host = "localhost"
-        self.port = 8095
+        host = "localhost"
+        port = 8095
         self.connection = connection
     }
 
