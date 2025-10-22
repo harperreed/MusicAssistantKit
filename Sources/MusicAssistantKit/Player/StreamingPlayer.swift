@@ -79,7 +79,6 @@ public actor StreamingPlayer {
     private func subscribeToEvents() async {
         client.events.builtinPlayerEvents
             .sink { [weak self] playerId, event in
-                guard let self else { return }
                 Task { [weak self] in
                     await self?.handleEvent(playerId: playerId, event: event)
                 }
