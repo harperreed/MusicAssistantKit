@@ -62,7 +62,7 @@ enum MAPlayerError: Error {
             print("")
 
             // Try to play the URL via Music Assistant
-            print("▶️  Attempting to play URL...")
+            print("▶️ Attempting to play URL...")
             print("   Note: This requires the URL to be a valid music source")
             print("   that Music Assistant can recognize and stream.")
             print("")
@@ -116,7 +116,7 @@ enum MAPlayerError: Error {
                 print("")
 
                 // Wait for the specified duration
-                print("⏱️  Playing for \(Int(duration)) seconds...")
+                print("⏱️ Playing for \(Int(duration)) seconds...")
                 print("   (Press Ctrl+C to stop early)")
                 print("")
 
@@ -150,9 +150,9 @@ enum MAPlayerError: Error {
                 // Cleanup
                 print("")
                 if shouldStop {
-                    print("⏹️  Stopped by user")
+                    print("⏹️ Stopped by user")
                 } else {
-                    print("⏹️  Duration elapsed")
+                    print("⏹️ Duration elapsed")
                 }
 
                 print("🧹 Cleaning up...")
