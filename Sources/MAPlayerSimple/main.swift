@@ -54,6 +54,6 @@ struct MAPlayerSimple {
 
 extension String {
     static func * (lhs: String, rhs: Int) -> String {
-        return String(repeating: lhs, count: rhs)
+        String(repeating: lhs, count: rhs)
     }
 }
