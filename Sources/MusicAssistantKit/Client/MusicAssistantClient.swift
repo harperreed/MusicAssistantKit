@@ -129,23 +129,16 @@ public actor MusicAssistantClient {
 
         let cmd = Command(messageId: messageId, command: command, args: anyCodableArgs)
 
-        return try await withCheckedThrowingContinuation { [weak self] continuation in
-            guard let self else {
-                continuation.resume(throwing: MusicAssistantError.notConnected)
-                return
-            }
+        return try await withCheckedThrowingContinuation { continuation in
+            // Store continuation and start timeout
+            storePendingCommand(messageId: messageId, continuation: continuation)
 
-            Task { [weak self] in
-                guard let self else { return }
-
-                // Store continuation and start timeout - must be done on actor
-                await self.storePendingCommand(messageId: messageId, continuation: continuation)
-
+            Task {
                 do {
-                    try await self.connection.send(cmd)
+                    try await connection.send(cmd)
                 } catch {
                     // Cancel timeout and resume with error - must be done on actor
-                    await self.cancelPendingCommand(messageId: messageId, error: error)
+                    await cancelPendingCommand(messageId: messageId, error: error)
                 }
             }
         }
