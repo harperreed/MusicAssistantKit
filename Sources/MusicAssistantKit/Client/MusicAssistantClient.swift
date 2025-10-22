@@ -4,6 +4,7 @@
 import Combine
 import Foundation
 
+// swiftlint:disable type_body_length
 public actor MusicAssistantClient {
     private let connection: any WebSocketConnectionProtocol
     private var nextMessageId: Int = 1
