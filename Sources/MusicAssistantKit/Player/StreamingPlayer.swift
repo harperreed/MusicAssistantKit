@@ -41,8 +41,7 @@ public actor StreamingPlayer {
 
         // Extract player_id from result
         if let resultDict = result?.value as? [String: Any],
-           let id = resultDict["player_id"] as? String
-        {
+           let id = resultDict["player_id"] as? String {
             playerId = id
         } else {
             throw MusicAssistantError.invalidResponse
