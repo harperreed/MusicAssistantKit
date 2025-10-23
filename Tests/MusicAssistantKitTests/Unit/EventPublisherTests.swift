@@ -141,4 +141,132 @@ struct EventPublisherTests {
 
         cancellable.cancel()
     }
+
+    @Test("Publishes media_item_added events to mediaItemUpdates subject")
+    func publishesMediaItemAddedEvents() async {
+        let publisher = EventPublisher()
+        var receivedEvents: [MediaItemEvent] = []
+
+        let cancellable = publisher.mediaItemUpdates.sink { event in
+            receivedEvents.append(event)
+        }
+
+        let event = Event(
+            event: "media_item_added",
+            objectId: "track-123",
+            data: AnyCodable(["media_type": "track", "name": "Test Track"])
+        )
+
+        await publisher.publish(event)
+        await Task.yield() // Allow MainActor to process
+
+        #expect(receivedEvents.count == 1)
+        #expect(receivedEvents[0].action == .added)
+        #expect(receivedEvents[0].itemId == "track-123")
+        #expect(receivedEvents[0].mediaType == .track)
+
+        cancellable.cancel()
+    }
+
+    @Test("Publishes media_item_updated events to mediaItemUpdates subject")
+    func publishesMediaItemUpdatedEvents() async {
+        let publisher = EventPublisher()
+        var receivedEvents: [MediaItemEvent] = []
+
+        let cancellable = publisher.mediaItemUpdates.sink { event in
+            receivedEvents.append(event)
+        }
+
+        let event = Event(
+            event: "media_item_updated",
+            objectId: "artist-456",
+            data: AnyCodable(["media_type": "artist", "name": "Updated Artist"])
+        )
+
+        await publisher.publish(event)
+        await Task.yield() // Allow MainActor to process
+
+        #expect(receivedEvents.count == 1)
+        #expect(receivedEvents[0].action == .updated)
+        #expect(receivedEvents[0].itemId == "artist-456")
+        #expect(receivedEvents[0].mediaType == .artist)
+
+        cancellable.cancel()
+    }
+
+    @Test("Publishes media_item_deleted events to mediaItemUpdates subject")
+    func publishesMediaItemDeletedEvents() async {
+        let publisher = EventPublisher()
+        var receivedEvents: [MediaItemEvent] = []
+
+        let cancellable = publisher.mediaItemUpdates.sink { event in
+            receivedEvents.append(event)
+        }
+
+        let event = Event(
+            event: "media_item_deleted",
+            objectId: "album-789",
+            data: AnyCodable(["media_type": "album"])
+        )
+
+        await publisher.publish(event)
+        await Task.yield() // Allow MainActor to process
+
+        #expect(receivedEvents.count == 1)
+        #expect(receivedEvents[0].action == .deleted)
+        #expect(receivedEvents[0].itemId == "album-789")
+        #expect(receivedEvents[0].mediaType == .album)
+
+        cancellable.cancel()
+    }
+
+    @Test("Publishes media_item_played events to mediaItemUpdates subject")
+    func publishesMediaItemPlayedEvents() async {
+        let publisher = EventPublisher()
+        var receivedEvents: [MediaItemEvent] = []
+
+        let cancellable = publisher.mediaItemUpdates.sink { event in
+            receivedEvents.append(event)
+        }
+
+        let event = Event(
+            event: "media_item_played",
+            objectId: "track-999",
+            data: AnyCodable(["media_type": "track", "timestamp": 1234567890])
+        )
+
+        await publisher.publish(event)
+        await Task.yield() // Allow MainActor to process
+
+        #expect(receivedEvents.count == 1)
+        #expect(receivedEvents[0].action == .played)
+        #expect(receivedEvents[0].itemId == "track-999")
+        #expect(receivedEvents[0].mediaType == .track)
+
+        cancellable.cancel()
+    }
+
+    @Test("Handles media item events with unknown media type")
+    func handlesMediaItemEventsWithUnknownMediaType() async {
+        let publisher = EventPublisher()
+        var receivedEvents: [MediaItemEvent] = []
+
+        let cancellable = publisher.mediaItemUpdates.sink { event in
+            receivedEvents.append(event)
+        }
+
+        let event = Event(
+            event: "media_item_added",
+            objectId: "item-123",
+            data: AnyCodable(["media_type": "podcast", "name": "Test Podcast"])
+        )
+
+        await publisher.publish(event)
+        await Task.yield() // Allow MainActor to process
+
+        #expect(receivedEvents.count == 1)
+        #expect(receivedEvents[0].mediaType == .unknown)
+
+        cancellable.cancel()
+    }
 }
