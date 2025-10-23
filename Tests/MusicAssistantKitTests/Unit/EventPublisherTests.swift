@@ -232,7 +232,7 @@ struct EventPublisherTests {
         let event = Event(
             event: "media_item_played",
             objectId: "track-999",
-            data: AnyCodable(["media_type": "track", "timestamp": 1234567890])
+            data: AnyCodable(["media_type": "track", "timestamp": 1_234_567_890])
         )
 
         await publisher.publish(event)
